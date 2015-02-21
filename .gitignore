@@ -1,1 +1,6 @@
 elm-stuff
+elm.js
+**/repl-temp-*.*
+repl-temp-*.*
+data/current
+data/historical
