@@ -1,20 +1,43 @@
-module DataPortal where
+module WaggleDemo where
 
-import Html (..)
+import Html (Html, text, ul)
 import Signal
 import Http
+import Time (Time, every, second)
+import Window
+import Text (leftAligned, fromString, color, asText)
+import Color (red)
+import Graphics.Element (Element, flow, down)
+import List
+
+import Sensor
+import Parse
+
+-- main
+main : Signal Element
+main = Signal.map2 view Window.dimensions (Signal.map Parse.parse currentSensorData)
 
 -- model
-currentSensorDataUrl = "http://localhost:8000/data/current/current"
+currentSensorDataUrl : Signal String
+currentSensorDataUrl = Signal.sampleOn ticks (Signal.constant "http://localhost:8000/data/current/current")
 
+-- update
+ticks : Signal Time
+ticks = every (1 * second)
+    
 currentSensorData : Signal String
-currentSensorData = Http.sendGet (Signal.constant currentSensorDataUrl) |> Signal.map handleResponse 
+currentSensorData = Http.sendGet currentSensorDataUrl |> Signal.map handleResponse
 
+handleResponse : Http.Response String -> String
 handleResponse response = case response of
     Http.Success str -> str
-    _ -> ""
+    Http.Waiting -> "Loading..."
+    Http.Failure err msg -> "Request failed."
 
 -- view
-main : Signal Html
-main = Signal.map text currentSensorData
-
+view : (Int, Int) -> List (Maybe Sensor.SensorData) -> Element
+view (windowWidth, windowHeight) data = 
+    let innerWidth = min 980 windowWidth
+    in
+        flow down
+            <| List.map asText data 
