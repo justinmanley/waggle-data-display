@@ -3,7 +3,9 @@ module Sensor where
 import String
 
 type alias Temperature = { value : Maybe Float, units : String }
+type alias Pressure = { value : Maybe Float, units : String, kind : String }
 type alias LuminousIntensity = { value : Maybe Float, units : String }
+type alias Acceleration = { value : Maybe Float, units : String, direction : String }
 
 type SensorData = MLX90614ESF { 
         timestamp : String, 
@@ -13,8 +15,16 @@ type SensorData = MLX90614ESF {
         timestamp : String, 
         name : String, 
         temperature : Temperature }
-    | BMP180
-    | MMA8452Q
+    | BMP180 {
+        timestamp : String,
+        name : String,
+        temperature : Temperature,
+        pressure : Pressure }
+    | MMA8452Q {
+        timestamp : String,
+        name : String,
+        acceleration : (Acceleration, Acceleration)
+    }
     | PDV_P8104 { 
         timestamp : String, 
         name : String, 
