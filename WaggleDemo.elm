@@ -7,7 +7,7 @@ import Time (Time, every, second)
 import Window
 import Text (leftAligned, fromString, color, asText)
 import Color (red)
-import Graphics.Element (Element, flow, down)
+import Graphics.Element (Element, flow, down, image, layers, container, middle)
 import List
 
 import Sensor
@@ -37,7 +37,11 @@ handleResponse response = case response of
 -- view
 view : (Int, Int) -> List (Maybe Sensor.SensorData) -> Element
 view (windowWidth, windowHeight) data = 
-    let innerWidth = min 980 windowWidth
+    let 
+        innerWidth = min 980 windowWidth
+        sensorImage = image 306 406 "http://localhost:8000/assets/env-sense.jpg"
     in
-        flow down
-            <| List.map asText data 
+        layers [
+            container windowWidth windowHeight middle sensorImage,
+            flow down <| List.map asText data
+        ]
