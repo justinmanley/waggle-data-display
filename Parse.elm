@@ -7,85 +7,70 @@ import List (head, drop, map)
 import Sensor (..)
 
 parse = map parseSensor << String.lines
--- (List.map (split ",") << lines)
 
 parseSensor : String -> Maybe SensorData
 parseSensor s =
-    let dataPoints = String.split "," <| s
-    in case head dataPoints of
+    let data = String.split "," s
+        basic = parseBasicSensor data
+    in case head data of
         "MLX90614ESF-DAA.Melexis.008-2013" ->
-            Just <| MLX90614ESF { 
-                name = dataPoints |> get 0, 
-                timestamp = dataPoints |> get 1,
-                temperature = dataPoints |> get 2 |> parseTemperature
+            Just <| MLX90614ESF { basic | 
+                temperature = data |> get 2 |> parseSimpleDataPoint 
             }
         "TMP421.Texas_Instruments.2012" ->
-            Just <| TMP421 {
-                name = dataPoints |> get 0, 
-                timestamp = dataPoints |> get 1,
-                temperature = dataPoints |> get 2 |> parseTemperature
+            Just <| TMP421 { basic | 
+                temperature = data |> get 2 |> parseSimpleDataPoint 
             }
         "PDV_P8104.API.2006" ->
-            Just <| PDV_P8104 {
-                name = dataPoints |> get 0,
-                timestamp = dataPoints |> get 1,
-                luminousIntensity = dataPoints |> get 2 |> parseLuminousIntensity
+            Just <| PDV_P8104 { basic |
+                luminousIntensity = data |> get 2 |> parseSimpleDataPoint 
             }
-        "BMP180.Bosch.2_5-2013" ->
-            Just <| BMP180 {
-                name = dataPoints |> get 0,
-                timestamp = dataPoints |> get 1,
-                temperature = dataPoints |> get 2 |> parseTemperature,
-                pressure = dataPoints |> get 3 |> parsePressure
+        "BMP180.Bosch.2_5-2013" -> 
+            let temp = { basic | temperature = data |> get 2 |> parseSimpleDataPoint }
+            in Just <| BMP180 { 
+                temp | pressure = data |> get 3 |> parseSimpleDataPoint 
             }
         "MMA8452Q.Freescale.8_1-2013" ->
-            Just <| MMA8452Q {
-                name = dataPoints |> get 0,
-                timestamp = dataPoints |> get 1,
-                acceleration = (dataPoints |> get 2 |> parseAcceleration, dataPoints |> get 3 |> parseAcceleration)
+            Just <| MMA8452Q { basic | 
+                acceleration = parseAcceleration (data |> get 2) (data |> get 3) 
+            }
+        "Thermistor_NTC_PR103J2.US_Sensor.2003" ->
+            Just <| PR103J2 { 
+                basic | temperature = data |> get 2 |> parseSimpleDataPoint 
+            }
+        "HIH6130.Honeywell.2011" -> 
+            let temp = { basic | temperature = data |> get 2 |> parseSimpleDataPoint }
+            in Just <| HIH6130 { 
+                temp | humidity = data |> get 3 |> parseSimpleDataPoint 
             }
         _ -> Nothing
 
-parseAcceleration : String -> Acceleration
-parseAcceleration s = 
-    let accelerationData = String.split ";" s
-    in
-        { 
-            value = accelerationData |> get 1 |> String.toFloat |> toMaybe, 
-            units = accelerationData |> get 2,
-            direction = accelerationData |> get 3
-        }
+parseBasicSensor : List String -> { name : String, timestamp : String }
+parseBasicSensor d = { name = "hi", timestamp = "yo" }
 
-parseTemperature : String -> Temperature
-parseTemperature s = 
-    let temperatureData = String.split ";" s
-    in
-        { 
-            value = temperatureData |> get 1 |> String.toFloat |> toMaybe, 
-            units = temperatureData |> get 2
-        }
-
-parsePressure : String -> Pressure
-parsePressure s = 
-    let pressureData = String.split ";" s
+parseSimpleDataPoint : String -> { value : Maybe Float, units : String }
+parseSimpleDataPoint s =
+    let data = String.split ";" s
     in 
-        {
-            value = pressureData |> get 1 |> String.toFloat |> toMaybe,
-            units = pressureData |> get 2,
-            kind = pressureData |> get 3
-        }
+        { value = data |> get 1 |> String.toFloat |> toMaybe,
+          units = data |> get 2 }
 
-parseLuminousIntensity : String -> LuminousIntensity
-parseLuminousIntensity s =
-    let luminousIntensityData = String.split ";" s
+parseAcceleration : String -> String -> { x : Acceleration, y : Acceleration }
+parseAcceleration x y = 
+    let accelerationX = String.split ";" x
+        accelerationY = String.split ";" y
     in
-        {
-            value = luminousIntensityData |> get 1 |> String.toFloat |> toMaybe,
-            units = luminousIntensityData |> get 2
+        { 
+            x = { 
+                value = accelerationX |> get 1 |> String.toFloat |> toMaybe,
+                units = accelerationX |> get 2
+            },
+            y = {
+                value = accelerationY |> get 1 |> String.toFloat |> toMaybe,
+                units = accelerationY |> get 2
+            }
         }
 
 -- | Get the nth element of a 0-based list
 get : Int -> List a -> a
 get n = head << (drop n)
-
-
