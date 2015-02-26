@@ -8,39 +8,24 @@ type alias LuminousIntensity = { value : Maybe Float, units : String }
 type alias Acceleration = { value : Maybe Float, units : String }
 type alias Humidity = { value : Maybe Float, units : String }
 
-type alias BasicSensor = { timestamp : String, name : String }
+type alias BasicSensor a = { a | timestamp : String, name : String }
 
 type SensorData 
-    = MLX90614ESF { 
-        timestamp : String, 
-        name : String, 
-        temperature : Temperature } 
-    | TMP421 { 
-        timestamp : String, 
-        name : String, 
-        temperature : Temperature }
-    | BMP180 {
-        timestamp : String,
-        name : String,
-        temperature : Temperature,
-        pressure : Pressure }
-    | MMA8452Q {
-        timestamp : String,
-        name : String,
-        acceleration : { x : Acceleration, y : Acceleration } }
-    | PDV_P8104 { 
-        timestamp : String, 
-        name : String, 
-        luminousIntensity : LuminousIntensity }
-    | PR103J2 {
-        timestamp : String,
-        name : String,
-        temperature : Temperature }
-    | HIH6130 {
-        timestamp : String,
-        name : String,
-        temperature : Temperature,
-        humidity : Humidity }
+    = MLX90614ESF (BasicSensor { temperature : Temperature })
+    | TMP421 (BasicSensor { 
+        temperature : Temperature })
+    | BMP180 (BasicSensor { 
+        temperature : Temperature, 
+        pressure : Pressure })
+    | MMA8452Q (BasicSensor { 
+        acceleration : { x : Acceleration, y : Acceleration } })
+    | PDV_P8104 (BasicSensor { 
+        luminousIntensity : LuminousIntensity })
+    | PR103J2 (BasicSensor { 
+        temperature : Temperature })
+    | HIH6130 (BasicSensor { 
+        temperature : Temperature, 
+        humidity : Humidity })
     | SHT15
     | HTU21D
     | DS18B20
