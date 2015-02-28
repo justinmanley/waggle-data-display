@@ -15,7 +15,7 @@ import Parse
 
 -- main
 main : Signal Element
-main = Signal.map2 view Window.dimensions (Signal.map Parse.parse currentSensorData)
+main = Signal.map2 view Window.dimensions currentSensorData
 
 -- model
 currentSensorDataUrl : Signal String
@@ -25,14 +25,14 @@ currentSensorDataUrl = Signal.sampleOn ticks (Signal.constant "http://localhost:
 ticks : Signal Time
 ticks = every (1 * second)
     
-currentSensorData : Signal String
+currentSensorData : Signal (List (Maybe Sensor.SensorData))
 currentSensorData = Http.sendGet currentSensorDataUrl |> Signal.map handleResponse
 
-handleResponse : Http.Response String -> String
+handleResponse : Http.Response String -> List (Maybe Sensor.SensorData)
 handleResponse response = case response of
-    Http.Success str -> str
-    Http.Waiting -> "Loading..."
-    Http.Failure err msg -> "Request failed."
+    Http.Success str -> Parse.parse str
+    Http.Waiting -> []
+    Http.Failure err msg -> []
 
 -- view
 view : (Int, Int) -> List (Maybe Sensor.SensorData) -> Element

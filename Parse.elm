@@ -3,6 +3,7 @@ module Parse where
 import String
 import Result (toMaybe)
 import List (head, drop, map)
+import Debug (log)
 
 import Sensor (..)
 
@@ -46,7 +47,7 @@ parseSensor s =
         _ -> Nothing
 
 parseBasicSensor : List String -> { name : String, timestamp : String }
-parseBasicSensor d = { name = "hi", timestamp = "yo" }
+parseBasicSensor data = { name = data |> get 0, timestamp = data |> get 1 }
 
 parseSimpleDataPoint : String -> { value : Maybe Float, units : String }
 parseSimpleDataPoint s =
