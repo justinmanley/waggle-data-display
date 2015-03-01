@@ -2,12 +2,12 @@ module Parse where
 
 import String
 import Result (toMaybe)
-import List (head, drop, map)
+import List (head, drop, map, filter)
 import Debug (log)
 
 import Sensor (..)
 
-parse = map parseSensor << String.lines
+parse = map parseSensor << filter (not << String.isEmpty) << String.lines
 
 parseSensor : String -> Maybe SensorData
 parseSensor s =
@@ -97,27 +97,27 @@ parseSensor s =
 parseBasicSensor : List String -> { name : String, timestamp : String }
 parseBasicSensor data = { name = data |> get 0, timestamp = data |> get 1 }
 
-parseSimpleDataPoint : String -> { value : Maybe Float, units : String }
+parseSimpleDataPoint : String -> { value : String, units : String }
 parseSimpleDataPoint s =
     let data = String.split ";" s
     in 
-        { value = data |> get 1 |> String.toFloat |> toMaybe,
+        { value = data |> get 1,
           units = data |> get 2 }
 
 parseCompoundDataPoint : String 
     -> String 
-    -> { x : { value : Maybe Float, units : String }, y : { value : Maybe Float, units : String } }
+    -> { x : { value : String, units : String }, y : { value : String, units : String } }
 parseCompoundDataPoint x y = 
     let xs = String.split ";" x
         ys = String.split ";" y
     in
         { 
             x = { 
-                value = xs |> get 1 |> String.toFloat |> toMaybe,
+                value = xs |> get 1,
                 units = xs |> get 2
             },
             y = {
-                value = ys |> get 1 |> String.toFloat |> toMaybe,
+                value = ys |> get 1,
                 units = ys |> get 2
             }
         }
