@@ -33,17 +33,17 @@ currentSensorDataUrl = Signal.sampleOn ticks (Signal.constant "http://localhost:
 ticks : Signal Time
 ticks = every (1 * second)
     
-currentSensorData : Signal (List (Maybe Sensor.SensorData))
+currentSensorData : Signal (List (Maybe Sensor.Sensor))
 currentSensorData = Http.sendGet currentSensorDataUrl |> Signal.map handleResponse
 
-handleResponse : Http.Response String -> List (Maybe Sensor.SensorData)
+handleResponse : Http.Response String -> List (Maybe Sensor.Sensor)
 handleResponse response = case response of
     Http.Success str -> Parse.parse str
     Http.Waiting -> []
     Http.Failure err msg -> []
 
 -- view
-view : (Int, Int) -> List (Maybe Sensor.SensorData) -> Element
+view : (Int, Int) -> List (Maybe Sensor.Sensor) -> Element
 view (windowWidth, windowHeight) data = 
     let 
         innerWidth = min 980 windowWidth
@@ -57,7 +57,7 @@ view (windowWidth, windowHeight) data =
                 <| List.map (viewSensor (windowWidth, windowHeight) (imageWidth, imageHeight)) data
         ]
 
-viewSensor : (Int, Int) -> (Int, Int) -> Maybe Sensor.SensorData -> Element
+viewSensor : (Int, Int) -> (Int, Int) -> Maybe Sensor.Sensor -> Element
 viewSensor (windowWidth, windowHeight) imageDimensions maybeSensor = case maybeSensor of 
     Just sensor -> 
         let viewBasic' = viewBasic (side sensor)
@@ -92,7 +92,7 @@ viewSensor (windowWidth, windowHeight) imageDimensions maybeSensor = case maybeS
             container windowWidth windowHeight (viewPos (windowWidth, windowHeight) imageDimensions sensor) element
     Nothing -> leftAligned (fromString "Sensor data parse error.")
 
-viewPos : (Int, Int) -> (Int, Int) -> Sensor.SensorData -> Position
+viewPos : (Int, Int) -> (Int, Int) -> Sensor.Sensor -> Position
 viewPos (windowWidth, windowHeight) (imageWidth, imageHeight) sensor = 
     let
         gutter = 10
@@ -130,7 +130,7 @@ viewBasic side { value, units } = case side of
     Left -> rightAligned (fromString (value ++ " " ++ units))
     Right -> leftAligned (fromString (value ++ " " ++ units))
 
-side : Sensor.SensorData -> Side
+side : Sensor.Sensor -> Side
 side sensor = case sensor of
     Sensor.MLX90614ESF _ -> Right
     Sensor.TMP421 _ -> Right

@@ -12,7 +12,7 @@ type alias MagneticField = { value : String, units : String }
 
 type alias BasicSensor a = { a | timestamp : String, name : String }
 
-type SensorData 
+type Sensor
     = MLX90614ESF (BasicSensor { temperature : Temperature })
     | TMP421 (BasicSensor { temperature : Temperature }) 
     | BMP180 (BasicSensor { temperature : Temperature, pressure : Pressure })

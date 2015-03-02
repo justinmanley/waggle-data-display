@@ -9,7 +9,7 @@ import Sensor (..)
 
 parse = map parseSensor << filter (not << String.isEmpty) << String.lines
 
-parseSensor : String -> Maybe SensorData
+parseSensor : String -> Maybe Sensor
 parseSensor s =
     let data = String.split "," s
         basic = parseBasicSensor data
