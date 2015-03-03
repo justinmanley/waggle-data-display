@@ -1,11 +1,11 @@
-module Parse where
+module Waggle.Parse where
 
 import String
 import Result (toMaybe)
 import List (head, drop, map, filter)
 import Debug (log)
 
-import Sensor (..)
+import Waggle.Sensor (..)
 
 parse = map parseSensor << filter (not << String.isEmpty) << String.lines
 

@@ -1,4 +1,4 @@
-module Sensor where
+module Waggle.Sensor where
 
 import String
 
