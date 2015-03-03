@@ -18,6 +18,7 @@ import List
 import Maybe
 import String
 import Result (toMaybe)
+import Signal.Extra (runBuffer)
 
 import Waggle.Sensor
 import Waggle.Parse
@@ -29,9 +30,11 @@ type Side = Left | Right
 sensorDataUrl = "http://localhost:8000/data/current/current"
 sensorImageUrl = "http://localhost:8000/assets/env-sense-annotated.png"
 
+title = "The Waggle Platform"
+
 -- main
 main : Signal Element
-main = Signal.map2 view Window.dimensions currentSensorData
+main = Signal.map2 view Window.dimensions (runBuffer 60 <| currentSensorData)
 
 -- update
 ticks : Signal Time
@@ -48,23 +51,23 @@ handleResponse response = case response of
     Http.Failure err msg -> []
 
 -- view
-view : (Int, Int) -> List (Maybe Waggle.Sensor.Sensor) -> Element
+view : (Int, Int) -> List (List (Maybe Waggle.Sensor.Sensor)) -> Element
 view (windowWidth, windowHeight) data = 
     let 
         innerWidth = min 980 windowWidth
         (imageWidth, imageHeight) = (459, 609)
         sensorImage = image imageWidth imageHeight sensorImageUrl
-        title = leftAligned 
+        pageTitle = leftAligned 
             <| height 40 
             <| typeface ["EB Garamond", "serif"]
-            <| fromString "The Waggle Platform"
+            <| fromString title
     in
         layers [
-            title,
+            pageTitle,
             container windowWidth windowHeight middle sensorImage,
             flow inward
                 <| List.map (container windowWidth windowHeight middle)
-                <| List.map (viewSensor (windowWidth, windowHeight) (imageWidth, imageHeight)) data
+                <| List.map (viewSensor (windowWidth, windowHeight) (imageWidth, imageHeight)) (List.head data)
         ]
 
 viewSensor : (Int, Int) -> (Int, Int) -> Maybe Waggle.Sensor.Sensor -> Element
