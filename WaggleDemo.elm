@@ -21,23 +21,25 @@ import Result (toMaybe)
 
 import Waggle.Sensor
 import Waggle.Parse
+import Chart
 
 type Side = Left | Right
+
+-- assets and data
+sensorDataUrl = "http://localhost:8000/data/current/current"
+sensorImageUrl = "http://localhost:8000/assets/env-sense-annotated.png"
 
 -- main
 main : Signal Element
 main = Signal.map2 view Window.dimensions currentSensorData
-
--- model
-currentSensorDataUrl : Signal String
-currentSensorDataUrl = Signal.sampleOn ticks (Signal.constant "http://localhost:8000/data/current/current")
 
 -- update
 ticks : Signal Time
 ticks = every (1 * second)
     
 currentSensorData : Signal (List (Maybe Waggle.Sensor.Sensor))
-currentSensorData = Http.sendGet currentSensorDataUrl |> Signal.map handleResponse
+currentSensorData = Http.sendGet (Signal.sampleOn ticks (Signal.constant sensorDataUrl)) 
+    |> Signal.map handleResponse
 
 handleResponse : Http.Response String -> List (Maybe Waggle.Sensor.Sensor)
 handleResponse response = case response of
@@ -51,7 +53,7 @@ view (windowWidth, windowHeight) data =
     let 
         innerWidth = min 980 windowWidth
         (imageWidth, imageHeight) = (459, 609)
-        sensorImage = image imageWidth imageHeight "http://localhost:8000/assets/env-sense-annotated.png"
+        sensorImage = image imageWidth imageHeight sensorImageUrl
         title = leftAligned 
             <| height 40 
             <| typeface ["EB Garamond", "serif"]
