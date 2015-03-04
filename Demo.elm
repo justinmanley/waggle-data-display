@@ -24,7 +24,7 @@ import Waggle.Sensor
 import Waggle.Parse
 import Waggle.Layout (Side, side, pos, align)
 import Chart
-import Util (filterJust)
+import Util (filterJust, take)
 
 -- assets and data
 sensorDataUrl = "http://localhost:8000/data/current/current"
@@ -34,7 +34,7 @@ title = "The Waggle Platform"
 
 -- main
 main : Signal Element
-main = Signal.map2 view Window.dimensions (runBuffer' [[]] 60 <| currentSensorData)
+main = Signal.map2 view Window.dimensions (take 60 <| currentSensorData)
 
 -- update
 ticks : Signal Time
@@ -67,7 +67,10 @@ view (windowWidth, windowHeight) data =
             container windowWidth windowHeight middle sensorImage,
             flow inward
                 <| List.map (container windowWidth windowHeight middle)
-                <| List.map (viewSensor (windowWidth, windowHeight) (imageWidth, imageHeight)) (List.head data)
+                <| List.map (viewSensor (windowWidth, windowHeight) (imageWidth, imageHeight)) (case data of
+                    [] -> [] 
+                    x :: _ -> x
+                {- end case -})
         ]
 
 viewSensor : (Int, Int) -> (Int, Int) -> Maybe Waggle.Sensor.Sensor -> Element
