@@ -52,7 +52,8 @@ parseSensor s =
             "MAX4466.Maxim.2001" -> acousticIntensitySensor MAX4466
             "MMA8452Q.Freescale.8_1-2013" -> accelerationSensor MMA8452Q
             "HMC5883.Honeywell.2013" -> magneticFieldSensor HMC5883
-            "D6T-44L-06.Omron.2012" -> infraredCameraSensor D6T44L06 
+            "D6T-44L-06.Omron.2012" -> infraredCameraSensor D6T44L06
+            _ -> Nothing
 
 parseBasic data = case data of
     name :: timestamp :: rest -> Just ({
