@@ -1,16 +1,20 @@
 module Waggle.Parse where
 
 import String
-import Result (Result(..), toMaybe)
+import Result (Result(..))
 import List
-import Debug (log)
 import Maybe (Maybe(..), andThen, map)
 
 import Waggle.Sensor (..)
 import Util (map2, transpose)
 
+{-| Parse the current list of sensors, as in data/current/current. -}
+parse : String -> List (Maybe Sensor)
 parse = List.map parseSensor << List.filter (not << String.isEmpty) << String.lines
 
+{-| Parse a single line into a sensor.
+ -  If the parse fails at any time, returns Nothing; otherwise, returns (Just sensor). 
+ -}
 parseSensor : String -> Maybe Sensor
 parseSensor s =
     let data = String.split "," s
@@ -53,7 +57,7 @@ parseSensor s =
             "MMA8452Q.Freescale.8_1-2013" -> accelerationSensor MMA8452Q
             "HMC5883.Honeywell.2013" -> magneticFieldSensor HMC5883
             "D6T-44L-06.Omron.2012" -> infraredCameraSensor D6T44L06
-            _ -> Nothing
+            _ -> Nothing -- ensure exhaustive case match
 
 parseBasic data = case data of
     name :: timestamp :: rest -> Just ({

@@ -1,30 +1,25 @@
 module Demo where
 
-import Html (Html, text, ul)
 import Signal
 import Http
 import Time (Time, every, second)
 import Window
-import Text (Text, leftAligned, rightAligned, fromString, color, asText, height, typeface, defaultStyle)
-import Color (Color, red, grayscale)
-import Graphics.Collage (filled, rect)
+import Text (Text, leftAligned, rightAligned, fromString, height, typeface)
 import Graphics.Element (
     Element, Position,
     flow, layers,
     image, container,
-    down, right, middle, outward, inward, middleAt, midTop,  midLeft, midRightAt, midLeftAt,
+    down, right, middle, inward,
     relative, absolute)
 import List
 import Maybe
 import String
-import Result (toMaybe)
-import Signal.Extra (runBuffer')
 
 import Waggle.Sensor
 import Waggle.Parse
 import Waggle.Layout (Side, side, pos, align)
 import Chart
-import Util (filterJust, take)
+import Util (take)
 
 -- assets and data
 sensorDataUrl = "http://localhost:8000/data/current/current"
