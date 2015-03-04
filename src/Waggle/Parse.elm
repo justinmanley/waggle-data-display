@@ -15,9 +15,6 @@ parseSensor : String -> Maybe Sensor
 parseSensor s =
     let data = String.split "," s
 
-        simpleSensor parsePoint sensor = map (sensor << fst)
-            <| parseBasic data `andThen` parsePoint
-
         temperatureSensor = simpleSensor parseTemperature
         humiditySensor = simpleSensor parseHumidity
         luminousIntensitySensor = simpleSensor parseLuminousIntensity
@@ -26,9 +23,8 @@ parseSensor s =
         magneticFieldSensor = simpleSensor parseMagneticField
         infraredCameraSensor = simpleSensor parseTemperatures
 
-        -- Doesn't work because the record types become increasingly specific.
-        --temperatureHumiditySensor sensor = map (sensor << fst)
-        --    <| List.foldl (flip andThen) (parseBasic data) [parseTemperature, parseHumidity]
+        simpleSensor parsePoint sensor = map (sensor << fst)
+            <| parseBasic data `andThen` parsePoint
 
         temperatureHumiditySensor sensor = map (sensor << fst)
             <| parseBasic data `andThen` parseTemperature `andThen` parseHumidity
@@ -67,31 +63,31 @@ parseBasic data = case data of
 
 parsePressure (record, data) = case data of
     pressure :: rest -> map (\p -> ({ record | pressure = p }, rest))
-        <| parseSimpleDataPoint pressure
+        <| parseValue pressure
     _ -> Nothing
 
 parseHumidity (record, data) = case data of
     humidity :: rest -> map (\h -> ({ record | humidity = h }, rest))
-        <| parseSimpleDataPoint humidity
+        <| parseValue humidity
     _ -> Nothing
 
 parseTemperature (record, data) = case data of
     temperature :: rest -> map (\t -> ({ record | temperature = t }, rest))
-        <| parseSimpleDataPoint temperature
+        <| parseValue temperature
     _ -> Nothing
 
-parseTemperatures (record, data) = case transpose (List.map parseSimpleDataPoint data) of
+parseTemperatures (record, data) = case transpose (List.map parseValue data) of
     Just temperatures -> Just ({ record | temperatures = temperatures }, [])
     Nothing -> Nothing
 
 parseLuminousIntensity (record, data) = case data of
     luminousIntensity :: rest -> map (\t -> ({ record | luminousIntensity = t }, rest))
-        <| parseSimpleDataPoint luminousIntensity
+        <| parseValue luminousIntensity
     _ -> Nothing
 
 parseAcousticIntensity (record, data) = case data of
     acousticIntensity :: rest -> map (\t -> ({ record | acousticIntensity = t }, rest))
-        <| parseSimpleDataPoint acousticIntensity
+        <| parseValue acousticIntensity
     _ -> Nothing
 
 parseAcceleration (record, data) = case data of
@@ -104,13 +100,13 @@ parseMagneticField (record, data) = case data of
         <| parseCompoundDataPoint magneticFieldX magneticFieldY
     _ -> Nothing
 
-parseSimpleDataPoint : String -> Maybe Value
-parseSimpleDataPoint s = case String.split ";" s of
+parseValue : String -> Maybe Value
+parseValue s = case String.split ";" s of
     _ :: value :: units :: _ -> case String.toFloat value of
         Ok v -> Just { value = v, units = units }
         Err _ -> Nothing
     _ -> Nothing
 
 parseCompoundDataPoint : String -> String -> Maybe { x : Value, y : Value }
-parseCompoundDataPoint x y = map2 (\aX -> \aY -> { x = aX, y = aY }) (parseSimpleDataPoint x) 
-    <| parseSimpleDataPoint y
+parseCompoundDataPoint x y = map2 (\aX -> \aY -> { x = aX, y = aY }) (parseValue x) 
+    <| parseValue y
