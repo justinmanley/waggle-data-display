@@ -108,9 +108,9 @@ viewSensor (windowWidth, windowHeight) imageDimensions maybeSensor = case maybeS
             container windowWidth windowHeight (pos (windowWidth, windowHeight) imageDimensions sensor) element
     Nothing -> leftAligned (fromString "Sensor data parse error.")
 
-viewBasic : Side -> { value : String, units : String } -> Element
+viewBasic : Side -> Waggle.Sensor.Value -> Element
 viewBasic side { value, units } = (align side)
-        <| (height 26 <| typeface ["EB Garamond", "serif"] <| fromString (value ++ " ")) ++ (viewUnits units)
+        <| (height 26 <| typeface ["EB Garamond", "serif"] <| fromString (toString value ++ " ")) ++ (viewUnits units)
 
 viewUnits : String -> Text
 viewUnits units = height 14
@@ -121,7 +121,5 @@ viewUnits units = height 14
         _   -> units
         {- end case -})
 
-viewPoint : Side 
-    -> { x : { value : String, units : String }, y : { value : String, units : String } } 
-    -> Element
+viewPoint : Side -> { x : Waggle.Sensor.Value, y : Waggle.Sensor.Value } -> Element
 viewPoint side { x, y } = flow down [viewBasic side x, viewBasic side y]

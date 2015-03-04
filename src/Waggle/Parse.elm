@@ -1,7 +1,7 @@
 module Waggle.Parse where
 
 import String
-import Result (toMaybe)
+import Result (Result(..), toMaybe)
 import List
 import Debug (log)
 import Maybe (Maybe(..), andThen, map)
@@ -106,7 +106,9 @@ parseMagneticField (record, data) = case data of
 
 parseSimpleDataPoint : String -> Maybe Value
 parseSimpleDataPoint s = case String.split ";" s of
-    _ :: value :: units :: _ -> Just { value = value, units = units }
+    _ :: value :: units :: _ -> case String.toFloat value of
+        Ok v -> Just { value = v, units = units }
+        Err _ -> Nothing
     _ -> Nothing
 
 parseCompoundDataPoint : String -> String -> Maybe { x : Value, y : Value }
