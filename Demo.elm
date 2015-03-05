@@ -8,7 +8,7 @@ import Text (Text, leftAligned, rightAligned, fromString, height, typeface)
 import Graphics.Element (
     Element, Position,
     flow, layers,
-    image, container,
+    image, container, empty,
     down, right, middle, inward,
     relative, absolute)
 import List
@@ -19,13 +19,13 @@ import Waggle.Sensor (..)
 import Waggle.Parse
 import Waggle.Layout (Side, side, pos, align)
 import Chart
-import Util (take)
+import Util (take, truncateFloat)
 
 -- assets and data
 sensorDataUrl = "http://localhost:8000/data/current/current"
 sensorImageUrl = "http://localhost:8000/assets/env-sense-annotated.png"
 
-title = "The Waggle Platform"
+title = "EnvSense V1"
 
 -- main
 main : Signal Element
@@ -50,7 +50,7 @@ view : (Int, Int) -> List (List (Maybe Sensor)) -> Element
 view (windowWidth, windowHeight) data = 
     let 
         innerWidth = min 980 windowWidth
-        (imageWidth, imageHeight) = (459, 609)
+        (imageWidth, imageHeight) = (441, 586)
         sensorImage = image imageWidth imageHeight sensorImageUrl
         pageTitle = leftAligned 
             <| height 40 
@@ -96,8 +96,7 @@ viewSensor (windowWidth, windowHeight) imageDimensions maybeSensor = case maybeS
                 HIH4030 { humidity, timestamp, name } -> viewBasic' humidity
                 GA1A1S201WP { luminousIntensity, timestamp, name } -> viewBasic' luminousIntensity
                 MAX4466 { acousticIntensity, timestamp, name } -> viewBasic' acousticIntensity
-                D6T44L06 { temperatures, timestamp, name } -> flow right 
-                    <| List.map viewBasic' temperatures
+                D6T44L06 r -> viewInfraredCamera (side sensor) r
                 HMC5883 { magneticField, timestamp, name } -> viewPoint' magneticField
         in
             container windowWidth windowHeight (pos (windowWidth, windowHeight) imageDimensions sensor) element
@@ -105,7 +104,25 @@ viewSensor (windowWidth, windowHeight) imageDimensions maybeSensor = case maybeS
 
 viewBasic : Side -> Value -> Element
 viewBasic side { value, units } = (align side)
-        <| (height 26 <| typeface ["EB Garamond", "serif"] <| fromString (toString value ++ " ")) ++ (viewUnits units)
+        <| (height 26 <| typeface ["EB Garamond", "serif"] <| fromString (toString value)) ++ (viewUnits units)
+
+viewInfraredCamera : Side -> { temperatures : List Temperature, name : String, timestamp : String } -> Element
+viewInfraredCamera side sensor = 
+    let { temperatures, name, timestamp } = sensor
+    in case temperatures of
+        [] -> empty
+        casing :: rest -> case rest of
+            [] -> viewBasic side casing
+            t :: ts ->
+                let { units, value } = t
+                in flow right [
+                    viewBasic side casing,
+                    leftAligned (fromString "  "),
+                    viewBasic side { 
+                        value = truncateFloat 2 <| (List.foldr (+) t.value (List.map .value ts)) / (toFloat <| List.length rest),
+                        units = units 
+                    }
+                ] 
 
 viewUnits : String -> Text
 viewUnits units = height 14
