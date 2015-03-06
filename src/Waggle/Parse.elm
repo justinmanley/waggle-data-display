@@ -12,29 +12,33 @@ import Util (map2, transpose)
 parse : String -> List (Maybe Sensor)
 parse = List.map parseSensor << List.filter (not << String.isEmpty) << String.lines
 
-{-| Parse a single line into a sensor.
+{-| Parse a single line as a sensor.
  -  If the parse fails at any time, returns Nothing; otherwise, returns (Just sensor). 
  -}
 parseSensor : String -> Maybe Sensor
 parseSensor s =
     let data = String.split "," s
 
-        temperatureSensor = simpleSensor parseTemperature
-        humiditySensor = simpleSensor parseHumidity
-        luminousIntensitySensor = simpleSensor parseLuminousIntensity
-        acousticIntensitySensor = simpleSensor parseAcousticIntensity
-        accelerationSensor = simpleSensor parseAcceleration
-        magneticFieldSensor = simpleSensor parseMagneticField
-        infraredCameraSensor = simpleSensor parseTemperatures
+        temperatureSensor = map TemperatureSensor << simpleSensor parseTemperature
+        humiditySensor = map HumiditySensor << simpleSensor parseHumidity
+        luminousIntensitySensor = map LuminousIntensitySensor << simpleSensor parseLuminousIntensity
+        acousticIntensitySensor = map AcousticIntensitySensor << simpleSensor parseAcousticIntensity
+        accelerationSensor = map AccelerationSensor << simpleSensor parseAcceleration
+        magneticFieldSensor = map MagneticFieldSensor << simpleSensor parseMagneticField
+        infraredCameraSensor = map InfraredCamera << simpleSensor parseTemperatures
 
-        simpleSensor parsePoint sensor = map (sensor << fst)
-            <| parseBasic data `andThen` parsePoint
+        simpleSensor parsePoint sensorType = map fst
+            <| parseBasic data sensorType `andThen` parsePoint
 
-        temperatureHumiditySensor sensor = map (sensor << fst)
-            <| parseBasic data `andThen` parseTemperature `andThen` parseHumidity
+        temperatureHumiditySensor sensorType = map (TemperatureHumiditySensor << fst)
+            <| parseBasic data sensorType 
+                `andThen` parseTemperature 
+                `andThen` parseHumidity
 
-        pressureSensor sensor = map (sensor << fst) 
-            <| parseBasic data `andThen` parseTemperature `andThen` parsePressure
+        pressureSensor sensorType = map (TemperaturePressureSensor << fst) 
+            <| parseBasic data sensorType 
+                `andThen` parseTemperature 
+                `andThen` parsePressure
 
     in case data of
         [] -> Nothing
@@ -59,10 +63,12 @@ parseSensor s =
             "D6T-44L-06.Omron.2012" -> infraredCameraSensor D6T44L06
             _ -> Nothing -- ensure exhaustive case match
 
-parseBasic data = case data of
+parseBasic : List String -> SensorType -> Maybe (BasicSensor {}, List String)
+parseBasic data sensorType = case data of
     name :: timestamp :: rest -> Just ({
         name = name,
-        timestamp = timestamp
+        timestamp = timestamp,
+        sensorType = sensorType
     }, rest)
     _ -> Nothing
 

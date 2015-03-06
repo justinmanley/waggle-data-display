@@ -71,58 +71,43 @@ view (windowWidth, windowHeight) data =
 viewSensor : (Int, Int) -> (Int, Int) -> Maybe Sensor -> Element
 viewSensor (windowWidth, windowHeight) imageDimensions maybeSensor = case maybeSensor of 
     Just sensor -> 
-        let viewBasic' = viewBasic (side sensor)
-            viewPoint' = viewPoint (side sensor)
+        let viewBasic' = viewBasic (side <| sensorType sensor)
+            viewPoint' = viewPoint (side <| sensorType sensor)
             element = case sensor of
-                MLX90614ESF { temperature, timestamp, name } -> viewBasic' temperature
-                TMP421 { temperature, timestamp, name } -> viewBasic' temperature
-                BMP180 { temperature, pressure, timestamp, name } -> flow down
-                    <| List.map viewBasic' [temperature, pressure]
-                MMA8452Q { acceleration, timestamp, name } -> viewPoint' acceleration
-                PDV_P8104 { luminousIntensity, timestamp, name } -> viewBasic' luminousIntensity
-                PR103J2 { temperature, timestamp, name } -> viewBasic' temperature
-                HIH6130 { temperature, humidity, timestamp, name } -> flow down 
-                    <| List.map viewBasic' [temperature, humidity]
-                SHT15 { temperature, humidity, timestamp, name } -> flow down
-                    <| List.map viewBasic' [temperature, humidity]
-                HTU21D { temperature, humidity, timestamp, name } -> flow down 
-                    <| List.map viewBasic' [temperature, humidity]
-                DS18B20 { temperature, timestamp, name } -> viewBasic' temperature
-                RHT03 { temperature, humidity, timestamp, name } -> flow down
-                    <| List.map viewBasic' [temperature, humidity]
-                TMP102 { temperature, timestamp, name } -> viewBasic' temperature
-                SHT75 { temperature, humidity, timestamp, name } -> flow down 
-                    <| List.map viewBasic' [temperature, humidity]
-                HIH4030 { humidity, timestamp, name } -> viewBasic' humidity
-                GA1A1S201WP { luminousIntensity, timestamp, name } -> viewBasic' luminousIntensity
-                MAX4466 { acousticIntensity, timestamp, name } -> viewBasic' acousticIntensity
-                D6T44L06 r -> viewInfraredCamera (side sensor) r
-                HMC5883 { magneticField, timestamp, name } -> viewPoint' magneticField
+                TemperatureSensor { temperature } -> viewBasic' temperature
+                HumiditySensor { humidity } -> viewBasic' humidity
+                TemperatureHumiditySensor { temperature, humidity } -> flow down 
+                    <| List.map viewBasic' [ temperature, humidity ]
+                LuminousIntensitySensor { luminousIntensity } -> viewBasic' luminousIntensity 
+                InfraredCamera { temperatures } -> viewInfraredCamera (side <| sensorType sensor) temperatures
+                MagneticFieldSensor { magneticField } -> viewPoint' magneticField
+                AcousticIntensitySensor { acousticIntensity } -> viewBasic' acousticIntensity 
+                TemperaturePressureSensor { temperature, pressure } -> flow down
+                    <| List.map viewBasic' [ temperature, pressure]
+                AccelerationSensor { acceleration } -> viewPoint' acceleration                       
         in
-            container windowWidth windowHeight (pos (windowWidth, windowHeight) imageDimensions sensor) element
+            container windowWidth windowHeight (pos (windowWidth, windowHeight) imageDimensions (sensorType sensor)) element
     Nothing -> leftAligned (fromString "Sensor data parse error.")
 
 viewBasic : Side -> Value -> Element
 viewBasic side { value, units } = (align side)
         <| (height 26 <| typeface ["EB Garamond", "serif"] <| fromString (toString value)) ++ (viewUnits units)
 
-viewInfraredCamera : Side -> { temperatures : List Temperature, name : String, timestamp : String } -> Element
-viewInfraredCamera side sensor = 
-    let { temperatures, name, timestamp } = sensor
-    in case temperatures of
-        [] -> empty
-        casing :: rest -> case rest of
-            [] -> viewBasic side casing
-            t :: ts ->
-                let { units, value } = t
-                in flow right [
-                    viewBasic side casing,
-                    leftAligned (fromString "  "),
-                    viewBasic side { 
-                        value = truncateFloat 2 <| (List.foldr (+) t.value (List.map .value ts)) / (toFloat <| List.length rest),
-                        units = units 
-                    }
-                ] 
+viewInfraredCamera : Side -> List Temperature -> Element
+viewInfraredCamera side temperatures = case temperatures of
+    [] -> empty
+    casing :: rest -> case rest of
+        [] -> viewBasic side casing
+        t :: ts ->
+            let { units, value } = t
+            in flow right [
+                viewBasic side casing,
+                leftAligned (fromString "  "),
+                viewBasic side { 
+                    value = truncateFloat 2 <| (List.foldr (+) t.value (List.map .value ts)) / (toFloat <| List.length rest),
+                    units = units 
+                }
+            ]
 
 viewUnits : String -> Text
 viewUnits units = height 14
