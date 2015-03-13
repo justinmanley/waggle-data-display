@@ -6,7 +6,7 @@ import List
 import Maybe (Maybe(..), andThen, map)
 
 import Waggle.Sensor (..)
-import Util (map2, transpose)
+import Util (map3, transpose)
 
 {-| Parse the current list of sensors, as in data/current/current. -}
 parse : String -> List (Maybe Sensor)
@@ -23,12 +23,16 @@ parseSensor s =
         humiditySensor = map HumiditySensor << simpleSensor parseHumidity
         luminousIntensitySensor = map LuminousIntensitySensor << simpleSensor parseLuminousIntensity
         acousticIntensitySensor = map AcousticIntensitySensor << simpleSensor parseAcousticIntensity
-        accelerationSensor = map AccelerationSensor << simpleSensor parseAcceleration
         magneticFieldSensor = map MagneticFieldSensor << simpleSensor parseMagneticField
         infraredCameraSensor = map InfraredCamera << simpleSensor parseTemperatures
 
         simpleSensor parsePoint sensorType = map fst
             <| parseBasic data sensorType `andThen` parsePoint
+
+        accelerationSensor sensorType = map (AccelerationSensor << fst)
+            <| parseBasic data sensorType 
+                `andThen` parseAcceleration
+                `andThen` parseVibration
 
         temperatureHumiditySensor sensorType = map (TemperatureHumiditySensor << fst)
             <| parseBasic data sensorType 
@@ -77,6 +81,11 @@ parsePressure (record, data) = case data of
         <| parseValue pressure
     _ -> Nothing
 
+parseVibration (record, data) = case data of
+    vibration :: rest -> map (\v -> ({ record | vibration = v }, rest))
+        <| parseValue vibration
+    _ -> Nothing
+
 parseHumidity (record, data) = case data of
     humidity :: rest -> map (\h -> ({ record | humidity = h }, rest))
         <| parseValue humidity
@@ -102,13 +111,13 @@ parseAcousticIntensity (record, data) = case data of
     _ -> Nothing
 
 parseAcceleration (record, data) = case data of
-    accelerationX :: accelerationY :: rest -> map (\a -> ({ record | acceleration = a }, rest))
-        <| parseCompoundDataPoint accelerationX accelerationY
+    x :: y :: z :: rest -> map (\a -> ({ record | acceleration = a }, rest))
+        <| parseCompoundDataPoint x y z
     _ -> Nothing
 
 parseMagneticField (record, data) = case data of
-    magneticFieldX :: magneticFieldY :: rest -> map (\a -> ({ record | magneticField = a }, rest))
-        <| parseCompoundDataPoint magneticFieldX magneticFieldY
+    x :: y :: z :: rest -> map (\a -> ({ record | magneticField = a }, rest))
+        <| parseCompoundDataPoint x y z
     _ -> Nothing
 
 parseValue : String -> Maybe Value
@@ -118,6 +127,7 @@ parseValue s = case String.split ";" s of
         Err _ -> Nothing
     _ -> Nothing
 
-parseCompoundDataPoint : String -> String -> Maybe { x : Value, y : Value }
-parseCompoundDataPoint x y = map2 (\aX -> \aY -> { x = aX, y = aY }) (parseValue x) 
-    <| parseValue y
+parseCompoundDataPoint : String -> String -> String -> Maybe { x : Value, y : Value, z : Value }
+parseCompoundDataPoint x y z = map3 (\aX -> \aY -> \aZ -> { x = aX, y = aY, z = aZ }) (parseValue x) 
+    (parseValue y)
+    (parseValue z)

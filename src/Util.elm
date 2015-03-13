@@ -20,9 +20,11 @@ take n input =
   let next inp prev = List.take n (inp :: prev)
   in foldp next [] input
 
-map2 : (a -> b -> result) -> Maybe a -> Maybe b -> Maybe result
-map2 f a b = case a of
-    Just a'  -> map (f a') b
+map3 : (a -> b -> c -> result) -> Maybe a -> Maybe b -> Maybe c -> Maybe result
+map3 f a b c = case a of
+    Just a' -> case b of
+        Just b' -> map (f a' b') c
+        Nothing -> Nothing
     Nothing -> Nothing
 
 transpose : List (Maybe a) -> Maybe (List a)

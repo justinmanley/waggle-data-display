@@ -9,10 +9,11 @@ type alias Pressure = Value
 type alias LuminousIntensity = Value
 type alias Humidity = Value
 type alias AcousticIntensity = Value
+type alias Vibration = Value
 
 -- Compound values
-type alias Acceleration = { x : Value, y : Value }
-type alias MagneticField = { x : Value, y : Value }
+type alias Acceleration = { x : Value, y : Value, z : Value }
+type alias MagneticField = { x : Value, y : Value, z : Value }
 
 type alias BasicSensor a = { a | timestamp : String, name : String, sensorType : SensorType }
 
@@ -25,7 +26,7 @@ type Sensor
     | MagneticFieldSensor (BasicSensor { magneticField : MagneticField })
     | AcousticIntensitySensor (BasicSensor { acousticIntensity : AcousticIntensity })
     | TemperaturePressureSensor (BasicSensor { temperature : Temperature, pressure : Pressure })
-    | AccelerationSensor (BasicSensor { acceleration : Acceleration })
+    | AccelerationSensor (BasicSensor { acceleration : Acceleration, vibration : Vibration })
 
 type SensorType
     = MLX90614ESF

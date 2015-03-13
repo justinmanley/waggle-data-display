@@ -21,11 +21,17 @@ import Waggle.Layout (Side, side, pos, align)
 import Chart
 import Util (take, truncateFloat)
 
--- assets and data
+{- Configuration -}
+
+-- Assets and data url
 sensorDataUrl = "http://localhost:8000/data/current/current"
 sensorImageUrl = "http://localhost:8000/assets/env-sense-annotated.png"
 
+-- Content for the banner at the top of the page.
 title = "EnvSense V1"
+secondary = [{- Any strings added to this list will be displayed below the title. -}]
+
+{- End configuration -}
 
 -- main
 main : Signal Element
@@ -52,13 +58,20 @@ view (windowWidth, windowHeight) data =
         innerWidth = min 980 windowWidth
         (imageWidth, imageHeight) = (441, 586)
         sensorImage = image imageWidth imageHeight sensorImageUrl
-        pageTitle = leftAligned 
-            <| height 40 
-            <| typeface ["EB Garamond", "serif"]
-            <| fromString title
+        banner = flow down 
+            ((leftAligned 
+                <| height 40 
+                <| typeface ["EB Garamond", "serif"]
+                <| fromString title) :: 
+            (List.map 
+                (leftAligned 
+                    << height 20 
+                    << typeface ["EB Garamond", "serif"] 
+                    << fromString) 
+                secondary))
     in
         layers [
-            pageTitle,
+            banner,
             container windowWidth windowHeight middle sensorImage,
             flow inward
                 <| List.map (container windowWidth windowHeight middle)
@@ -76,22 +89,22 @@ viewSensor (windowWidth, windowHeight) imageDimensions maybeSensor = case maybeS
             element = case sensor of
                 TemperatureSensor { temperature } -> viewBasic' temperature
                 HumiditySensor { humidity } -> viewBasic' humidity
-                TemperatureHumiditySensor { temperature, humidity } -> flow down 
+                TemperatureHumiditySensor { temperature, humidity } -> flow right 
                     <| List.map viewBasic' [ temperature, humidity ]
                 LuminousIntensitySensor { luminousIntensity } -> viewBasic' luminousIntensity 
                 InfraredCamera { temperatures } -> viewInfraredCamera (side <| sensorType sensor) temperatures
                 MagneticFieldSensor { magneticField } -> viewPoint' magneticField
                 AcousticIntensitySensor { acousticIntensity } -> viewBasic' acousticIntensity 
-                TemperaturePressureSensor { temperature, pressure } -> flow down
+                TemperaturePressureSensor { temperature, pressure } -> flow right
                     <| List.map viewBasic' [ temperature, pressure]
-                AccelerationSensor { acceleration } -> viewPoint' acceleration                       
+                AccelerationSensor { acceleration, vibration } -> flow right [viewPoint' acceleration, viewBasic' vibration]                       
         in
             container windowWidth windowHeight (pos (windowWidth, windowHeight) imageDimensions (sensorType sensor)) element
-    Nothing -> leftAligned (fromString "Sensor data parse error.")
+    Nothing -> leftAligned (fromString "") {- Don't show anything if there's a parse error. -}
 
 viewBasic : Side -> Value -> Element
 viewBasic side { value, units } = (align side)
-        <| (height 26 <| typeface ["EB Garamond", "serif"] <| fromString (toString value)) ++ (viewUnits units)
+        <| (height 26 <| typeface ["EB Garamond", "serif"] <| fromString (toString value)) ++ (viewUnits units) ++ fromString "  "
 
 viewInfraredCamera : Side -> List Temperature -> Element
 viewInfraredCamera side temperatures = case temperatures of
@@ -118,5 +131,5 @@ viewUnits units = height 14
         _   -> units
         {- end case -})
 
-viewPoint : Side -> { x : Value, y : Value } -> Element
-viewPoint side { x, y } = flow down [viewBasic side x, viewBasic side y]
+viewPoint : Side -> { x : Value, y : Value, z : Value } -> Element
+viewPoint side { x, y, z } = flow right [viewBasic side x, viewBasic side y, viewBasic side z]
