@@ -47,7 +47,7 @@ parseSensor s =
     in case data of
         [] -> Nothing
         (name :: _) -> case name of
-            "MLX90614ESF-DAA.Melexis.008-2013" -> temperatureSensor MLX90614ESF
+            "MLX90614ESF-DAA.Melexis.008-2013" -> temperatureSensor MLX90614ESFDAA
             "TMP421.Texas_Instruments.2012" -> temperatureSensor TMP421
             "Thermistor_NTC_PR103J2.US_Sensor.2003" -> temperatureSensor PR103J2
             "DS18B20.Maxim.2008" -> temperatureSensor DS18B20
@@ -60,7 +60,7 @@ parseSensor s =
             "SHT15.Sensirion.4_3-2010" -> temperatureHumiditySensor SHT15
             "HIH6130.Honeywell.2011" -> temperatureHumiditySensor HIH6130
             "GA1A1S201WP.Sharp.2007" -> luminousIntensitySensor GA1A1S201WP
-            "PDV_P8104.API.2006" -> luminousIntensitySensor PDV_P8104
+            "PDV_P8104.API.2006" -> luminousIntensitySensor PDVP8104
             "MAX4466.Maxim.2001" -> acousticIntensitySensor MAX4466
             "MMA8452Q.Freescale.8_1-2013" -> accelerationSensor MMA8452Q
             "HMC5883.Honeywell.2013" -> magneticFieldSensor HMC5883

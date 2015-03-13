@@ -10,7 +10,8 @@ import Graphics.Element (
     flow, layers,
     image, container, empty,
     down, right, middle, inward,
-    relative, absolute)
+    relative, absolute,
+    link)
 import List
 import Maybe
 import String
@@ -86,7 +87,7 @@ viewSensor (windowWidth, windowHeight) imageDimensions maybeSensor = case maybeS
     Just sensor -> 
         let viewBasic' = viewBasic (side <| sensorType sensor)
             viewPoint' = viewPoint (side <| sensorType sensor)
-            element = case sensor of
+            element = sensorInfo (sensorType sensor) <| case sensor of
                 TemperatureSensor { temperature } -> viewBasic' temperature
                 HumiditySensor { humidity } -> viewBasic' humidity
                 TemperatureHumiditySensor { temperature, humidity } -> flow right 
@@ -133,3 +134,6 @@ viewUnits units = height 14
 
 viewPoint : Side -> { x : Value, y : Value, z : Value } -> Element
 viewPoint side { x, y, z } = flow right [viewBasic side x, viewBasic side y, viewBasic side z]
+
+sensorInfo : SensorType -> Element -> Element
+sensorInfo sensorType = link ("./assets/SensorDataSheets/" ++ toString sensorType ++ ".pdf")

@@ -29,11 +29,11 @@ type Sensor
     | AccelerationSensor (BasicSensor { acceleration : Acceleration, vibration : Vibration })
 
 type SensorType
-    = MLX90614ESF
+    = MLX90614ESFDAA
     | TMP421 
     | BMP180
     | MMA8452Q
-    | PDV_P8104
+    | PDVP8104
     | PR103J2
     | HIH6130
     | SHT15
