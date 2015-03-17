@@ -8,13 +8,20 @@ import Maybe (Maybe(..), andThen, map)
 import Waggle.Sensor (..)
 
 {-| Parse the current list of sensors, as in data/current/current. -}
---parse : String -> List (Maybe Sensor)
---parse = List.map parseSensor << List.filter (not << String.isEmpty) << String.lines
+parse : String -> List Reading
+parse = let
+        parseLine line sensors = case parseSensor line of
+            Just sensor -> sensor :: sensors
+            Nothing -> sensors
+    in
+        (List.foldr parseLine []) 
+            << List.filter (not << String.isEmpty) 
+            << String.lines
 
 {-| Parse a single line as a sensor.
  -  If the parse fails at any time, returns Nothing; otherwise, returns (Just sensor). 
  -}
-parseSensor : String -> Maybe Sensor
+parseSensor : String -> Maybe Reading
 parseSensor s =
     let data = String.split "," s
     in case data of
@@ -24,7 +31,7 @@ parseSensor s =
                     Just val -> map ((::) val) maybeState
                     Nothing -> Nothing
                 vs = List.foldr combine (Just []) values
-                mkSensor values = { sensorId = sensorId, timestamp = timestamp, data = values }
+                mkSensor values = { id = sensorId, timestamp = timestamp, data = values }
             in
                 map mkSensor vs
         _ -> Nothing
