@@ -19,8 +19,10 @@ update currentSensorData =
 
         addCurrent : Reading -> HistoricalData -> HistoricalData 
         addCurrent sensor history = 
-            let updateCurrent sensorHistory = List.foldr addValue sensorHistory sensor.data
-            in Dict.update sensor.id (Maybe.map updateCurrent) history 
+            let updateCurrent maybeSensorHistory = case maybeSensorHistory of
+                Just sensorHistory -> Just <| List.foldr addValue sensorHistory sensor.data
+                Nothing -> Just <| Dict.empty
+            in Dict.update sensor.id updateCurrent history 
 
         addAll : List Reading -> HistoricalData -> HistoricalData
         addAll current history = List.foldr addCurrent history current
