@@ -46,6 +46,30 @@ type Side = Left | Right
 --            Left -> midRightAt (absolute w) (absolute <| midHeight + (floor <| h * (toFloat imageHeight)))
 --            Right -> midLeftAt (absolute w) (absolute <| midHeight + (floor <| h * (toFloat imageHeight)))
 
+name : SensorId -> String
+name sensorId = case sensorId of
+    "MLX90614ESF-DAA.Melexis.008-2013"      -> "MLX90614ESF"
+    "TMP421.Texas_Instruments.2012"         -> "TMP421"
+    "BMP180.Bosch.2_5-2013"                 -> "BMP180"
+    "MMA8452Q.Freescale.8_1-2013"           -> "MMA8452Q"
+    "Thermistor_NTC_PR103J2.US_Sensor.2003" -> "PR103J2"
+    "HTU21D.MeasSpec.2013"                  -> "HTU21D"
+    "DS18B20.Maxim.2008"                    -> "DS18B20"
+    "SHT75.Sensirion.5_2011"                -> "SHT75"
+    "GA1A1S201WP.Sharp.2007"                -> "GA1A1S201WP"
+
+    "PDV_P8104.API.2006"                    -> "PDVP8104"
+    "HIH4030.Honeywell.2008"                -> "HIH4030"
+    "SHT15.Sensirion.4_3-2010"              -> "SHT15"
+    "RHT03.Maxdetect.2011"                  -> "RHT03"
+    "TMP102.Texas_Instruments.2008"         -> "TMP102"
+    "MAX4466.Maxim.2001"                    -> "MAX4466"
+    "D6T-44L-06.Omron.2012"                 -> "D6T44L06"
+    "HMC5883.Honeywell.2013"                -> "HMC5883"
+    "HIH6130.Honeywell.2011"                -> "HIH6130"
+
+    _                                       -> "Error: " ++ sensorId ++ " not recognized."  
+
 side : SensorId -> Side
 side sensorId = case sensorId of
     "MLX90614ESF-DAA.Melexis.008-2013"      -> Right
@@ -63,9 +87,9 @@ side sensorId = case sensorId of
     "SHT15.Sensirion.4_3-2010"              -> Left
     "RHT03.Maxdetect.2011"                  -> Left
     "TMP102.Texas_Instruments.2008"         -> Left
-    "HIH4030.Honeywell.2008"                -> Left
     "MAX4466.Maxim.2001"                    -> Left
     "D6T-44L-06.Omron.2012"                 -> Left
     "HMC5883.Honeywell.2013"                -> Left
+    "HIH6130.Honeywell.2011"                -> Left 
 
     _                                       -> Left

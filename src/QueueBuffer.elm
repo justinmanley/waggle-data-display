@@ -25,3 +25,11 @@ toList buf = Queue.toList buf.queue
 
 maxSize : QueueBuffer a -> Int
 maxSize buf = buf.available + Queue.length buf.queue
+
+mapLast : (a -> b) -> b -> QueueBuffer a -> b
+mapLast f default buf = case buf.queue of 
+    Queue h t -> case t of
+        [] -> case h of
+            []        -> default
+            last :: _ -> f last
+        last :: _     -> f last

@@ -2,6 +2,7 @@ module Demo where
 
 import Signal
 import Window
+import Time (Time)
 import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asText)
 import Graphics.Element (
     Element, Position,
@@ -14,11 +15,12 @@ import List
 import Dict
 
 import Waggle.Sensor (..)
-import Waggle.Layout (Side(Left, Right), side)
+import Waggle.Layout (Side(Left, Right), side, name)
 import Waggle.Update (sensorData)
 import Chart (chart)
 import QueueBuffer
 import Waggle.Config as Config
+import Util (truncateFloat)
 
 -- main
 main : Signal Element
@@ -29,25 +31,35 @@ view : (Int, Int) -> HistoricalData -> Element
 view (windowWidth, windowHeight) data = 
     let (leftLayout, rightLayout) = Dict.partition (\sensorId _ -> (side sensorId == Left)) data
         center = container windowWidth windowHeight middle
-        info = flow right [
-                flow down <| List.map viewSensor <| Dict.values leftLayout,
-                spacer (.width Config.image) (.height Config.image),
-                flow down <| List.map viewSensor <| Dict.values rightLayout
-            ]
-    in layers <| List.map center [
-            info,
-            image (.width Config.image) (.height Config.image) Config.sensorImageUrl
+    in flow right [
+            flow down <| List.map viewSensor <| Dict.toList leftLayout,
+            image (.width Config.image) (.height Config.image) Config.sensorImageUrl,
+            flow down <| List.map viewSensor <| Dict.toList rightLayout
         ]
 
-viewSensor : SensorHistory -> Element
-viewSensor sensorHistory = Dict.values sensorHistory
-        |> List.map viewValue
-        |> flow down
+viewSensor : (SensorId, SensorHistory) -> Element
+viewSensor (sensorId, sensorHistory) = case name sensorId of
+    "D6T44L06" -> empty
+    _ -> flow down [
+            leftAligned (fromString <| name sensorId),    
+            Dict.toList sensorHistory
+                |> List.map viewValue
+                |> flow right
+        ]
 
-viewValue : ValueHistory -> Element
-viewValue history = 
+viewValue : (PhysicalQuantity, ValueHistory) -> Element
+viewValue (physicalQuantity, history) = 
     let chartSize = (.width Config.chart, .height Config.chart)
-        chartMargins = (2, 2) 
-    in
-        chart (QueueBuffer.maxSize history) chartSize chartMargins
+        chartMargins = (2, 2)
+        historyChart = chart (QueueBuffer.maxSize history) chartSize chartMargins
             <| QueueBuffer.toList history 
+    in
+        flow down [
+            leftAligned (fromString physicalQuantity),
+            QueueBuffer.mapLast viewMostRecentValue empty history,
+            historyChart
+        ]
+
+viewMostRecentValue : (Time, Float) -> Element
+viewMostRecentValue (_, val) = leftAligned (fromString <| toString <| truncateFloat 2 val)
+        
