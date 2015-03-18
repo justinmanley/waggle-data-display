@@ -20,8 +20,9 @@ import Waggle.Sensor (..)
 import Waggle.Parse (parse)
 --import Waggle.Layout (Side, side, pos, align)
 import Waggle.Update (update)
-import Chart
+import Chart (chart)
 import Util (take, truncateFloat)
+import QueueBuffer
 
 -- assets and data
 sensorDataUrl = "http://localhost:8000/data/current/current"
@@ -50,4 +51,9 @@ handleResponse response = case response of
 
 -- view
 view : (Int, Int) -> HistoricalData -> Element
-view (windowWidth, windowHeight) data = flow down (List.map asText <| Dict.values data)
+view (windowWidth, windowHeight) data = flow down <|
+    List.concatMap viewSensor <| Dict.values data
+
+viewSensor : SensorHistory -> List Element
+viewSensor sensorHistory = List.map (chart (300, 200) << QueueBuffer.toList) 
+    <| Dict.values sensorHistory
