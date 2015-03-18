@@ -18,3 +18,6 @@ push x buf =
 
 empty : Int -> QueueBuffer a
 empty n = { queue = Queue.empty, available = n }
+
+toList : QueueBuffer a -> List a
+toList buf = Queue.toList buf.queue

@@ -2,7 +2,7 @@ module Demo where
 
 import Signal
 import Http
-import Time (Time, every, second)
+import Time (Time, every, second, timestamp)
 import Window
 import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asText)
 import Graphics.Element (
@@ -40,7 +40,7 @@ ticks = every (1 * second)
 sensorData : Signal HistoricalData
 sensorData = Http.sendGet (Signal.sampleOn ticks (Signal.constant sensorDataUrl)) 
     |> Signal.map handleResponse
-    |> update
+    |> (timestamp >> update)
 
 handleResponse : Http.Response String -> List Reading
 handleResponse response = case response of
