@@ -1,7 +1,6 @@
 module Demo where
 
 import Signal
-import Http
 import Window
 import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asText)
 import Graphics.Element (
@@ -11,16 +10,12 @@ import Graphics.Element (
     down, right, middle, inward,
     relative, absolute)
 import List
-import Maybe
-import String
 import Dict
 
 import Waggle.Sensor (..)
-import Waggle.Parse (parse)
 --import Waggle.Layout (Side, side, pos, align)
 import Waggle.Update (sensorData)
 import Chart (chart)
-import Util (take, truncateFloat)
 import QueueBuffer
 
 -- main
