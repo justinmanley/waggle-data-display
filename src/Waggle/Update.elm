@@ -5,11 +5,13 @@ import List
 import Maybe
 import Signal
 import Time
-import Time (Time)
+import Time (Time, every, second)
+import Http
 
 import QueueBuffer
 import Waggle.Sensor (..)
-import Waggle.Config (historySize)
+import Waggle.Config (historySize, sensorDataUrl)
+import Waggle.Parse (parse)
 
 update : Signal (Time, List Reading) -> Signal HistoricalData
 update currentSensorData = 
@@ -36,3 +38,17 @@ update currentSensorData =
 
     in 
         Signal.foldp addAll Dict.empty currentSensorData
+
+ticks : Signal Time
+ticks = every (1 * second)
+    
+sensorData : Signal HistoricalData
+sensorData = Http.sendGet (Signal.sampleOn ticks (Signal.constant sensorDataUrl)) 
+    |> Signal.map handleResponse
+    |> (Time.timestamp >> update)
+
+handleResponse : Http.Response String -> List Reading
+handleResponse response = case response of
+    Http.Success str -> parse str
+    Http.Waiting -> []
+    Http.Failure err msg -> []
