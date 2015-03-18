@@ -6,17 +6,19 @@ import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asTe
 import Graphics.Element (
     Element, Position,
     flow, layers,
-    image, container, empty,
+    image, container, empty, spacer,
     down, right, middle, inward,
+    midRight,
     relative, absolute)
 import List
 import Dict
 
 import Waggle.Sensor (..)
---import Waggle.Layout (Side, side, pos, align)
+import Waggle.Layout (Side(Left, Right), side)
 import Waggle.Update (sensorData)
 import Chart (chart)
 import QueueBuffer
+import Waggle.Config as Config
 
 -- main
 main : Signal Element
@@ -24,11 +26,28 @@ main = Signal.map2 view Window.dimensions sensorData
 
 -- view
 view : (Int, Int) -> HistoricalData -> Element
-view (windowWidth, windowHeight) data = flow down <|
-    List.concatMap viewSensor <| Dict.values data
+view (windowWidth, windowHeight) data = 
+    let (leftLayout, rightLayout) = Dict.partition (\sensorId _ -> (side sensorId == Left)) data
+        center = container windowWidth windowHeight middle
+        info = flow right [
+                flow down <| List.map viewSensor <| Dict.values leftLayout,
+                spacer (.width Config.image) (.height Config.image),
+                flow down <| List.map viewSensor <| Dict.values rightLayout
+            ]
+    in layers <| List.map center [
+            info,
+            image (.width Config.image) (.height Config.image) Config.sensorImageUrl
+        ]
 
-viewSensor : SensorHistory -> List Element
-viewSensor sensorHistory = 
-    let chartBuffer buf = chart (QueueBuffer.maxSize buf) (300, 200) (2, 2) 
-        <| QueueBuffer.toList buf
-    in List.map chartBuffer <| Dict.values sensorHistory
+viewSensor : SensorHistory -> Element
+viewSensor sensorHistory = Dict.values sensorHistory
+        |> List.map viewValue
+        |> flow down
+
+viewValue : ValueHistory -> Element
+viewValue history = 
+    let chartSize = (.width Config.chart, .height Config.chart)
+        chartMargins = (2, 2) 
+    in
+        chart (QueueBuffer.maxSize history) chartSize chartMargins
+            <| QueueBuffer.toList history 
