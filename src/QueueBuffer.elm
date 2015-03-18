@@ -20,22 +20,8 @@ push x buf =
 empty : Int -> QueueBuffer a
 empty n = { queue = Queue.empty, available = n }
 
-unzip : QueueBuffer (a, b) -> (QueueBuffer a, QueueBuffer b)
-unzip buf =
-    let (Queue h t) = buf.queue
-        (bs, cs) = List.unzip h
-        (xs, ys) = List.unzip t
-    in ({ buf | queue <- Queue bs xs }, { buf | queue <- Queue cs ys })
-
-
-foldr : (a -> b -> b) -> b -> QueueBuffer a -> b
-foldr f start buf =
-    let (Queue h t) = buf.queue
-        result = List.foldr f start h
-    in List.foldl f result t
-
-map : (a -> b) -> QueueBuffer a -> QueueBuffer b
-map f buf = { buf | queue <- Queue.map f buf.queue }
-
 toList : QueueBuffer a -> List a
 toList buf = Queue.toList buf.queue
+
+maxSize : QueueBuffer a -> Int
+maxSize buf = buf.available + Queue.length buf.queue

@@ -28,5 +28,7 @@ view (windowWidth, windowHeight) data = flow down <|
     List.concatMap viewSensor <| Dict.values data
 
 viewSensor : SensorHistory -> List Element
-viewSensor sensorHistory = List.map (chart (300, 200) << QueueBuffer.toList) 
-    <| Dict.values sensorHistory
+viewSensor sensorHistory = 
+    let chartBuffer buf = chart (QueueBuffer.maxSize buf) (300, 200) (2, 2) 
+        <| QueueBuffer.toList buf
+    in List.map chartBuffer <| Dict.values sensorHistory

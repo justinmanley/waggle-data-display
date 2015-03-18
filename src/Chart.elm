@@ -15,21 +15,29 @@ type alias Point a = (a, a)
 --     * Want there to be a constant x-distance between data points, regardless of how many data
 --       points are actually being shown.
 -- What about when the max or min is negative?
-chart : Point Int -> List (Point Float) -> Element
-chart (width, height) data = case List.unzip data of
+chart : Int -> Point Int -> Point Int -> List (Point Float) -> Element
+chart intervals (width, height) (marginX, marginY) data = case List.unzip data of
     (x :: xs, y :: ys) -> 
         let bbox = {
                 x = { max = List.foldr max x xs, min = List.foldr min x xs },
                 y = { max = List.foldr max y ys, min = List.foldr min y ys }
             }
 
+            w = toFloat <| width - 2 * marginX
+            h = toFloat <| height - 2 * marginY
+
+            xOffset = 
+                if List.length data < intervals 
+                then (toFloat <| intervals - List.length data) * (w / toFloat intervals)
+                else 0
+
             xMid = bbox.x.min + (bbox.x.max - bbox.x.min) / 2
             yMid = bbox.y.min + (bbox.y.max - bbox.y.min) / 2
 
-            xScale = (toFloat width) / (bbox.x.max - bbox.x.min)
-            yScale = (toFloat height) / (bbox.y.max - bbox.y.min)
+            xScale = w / (bbox.x.max - bbox.x.min)
+            yScale = h / (bbox.y.max - bbox.y.min)
 
-            fit (x, y) = ((x - xMid) * xScale, (y - yMid) * yScale)
+            fit (x, y) = (xOffset + (x - xMid) * xScale, (y - yMid) * yScale)
             coordinates = List.map fit data
         in collage width height [traced (solid black) (path coordinates)]
     _ -> spacer width height
