@@ -12,18 +12,18 @@ historySize = 60
 {-| How frequently to poll for data updates. -}
 updateInterval = 1 * second
 
-----------------------------------------------------------------------
--- STYLES ------------------------------------------------------------
-----------------------------------------------------------------------
+{- Styles -}
 pointerStyle = { defaultLine | color <- lightGrey , width <- 3 }
+sensorBackgroundColor = lightGrey
 
-mutedTextStyle = {}
-primaryTextStyle = { defaultStyle
-    | typeface <- ["EB Garamond", "serif"] 
-    , height <- Just 14 }
-----------------------------------------------------------------------
--- SIZES -------------------------------------------------------------
-----------------------------------------------------------------------
+{- Text styles -}
+primaryStyle = defaultStyle 
+headerStyle = { defaultStyle
+    | typeface <- ["EB Garamond", "serif"] }
+h1Style = { headerStyle | height <- Just 40 }
+h2Style = { headerStyle | height <- Just 30 }
+
+{- Sizes -}
 chart = 
     { width = 190
     , height = 20 }
@@ -44,11 +44,12 @@ value =
     , height = chart.height + 1 * primaryEm
     , marginX = 16 }
 
-primaryEm = (fromString >> style primaryTextStyle >> leftAligned >> heightOf) "em"
-----------------------------------------------------------------------
--- URLS --------------------------------------------------------------
-----------------------------------------------------------------------
+primaryEm = (fromString >> style primaryStyle >> leftAligned >> heightOf) "em"
+
+{- Urls -}
 sensorDataUrl = "http://localhost:8000/data/current/current"
 sensorImageUrl = "http://localhost:8000/assets/env-sense.jpg"
 
+{- Content -}
 title = "EnvSense V1"
+secondary = ""

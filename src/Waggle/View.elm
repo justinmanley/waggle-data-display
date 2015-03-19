@@ -6,12 +6,11 @@ import Graphics.Element (
     midBottom, middle,
     widthOf, heightOf,
     container, color, flow, down, above, bottomLeft, link)
-import Color (lightGrey)
 import Text (fromString, style, leftAligned)
 import List
 
 import Util
-import Waggle.Config (sensor, value, primaryTextStyle)
+import Waggle.Config (sensor, value, primaryStyle, h1Style, h2Style, sensorBackgroundColor)
 import Waggle.Sensor (Value, SensorId)
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
@@ -37,8 +36,9 @@ alignSensor side =
 sensorContainer : String -> Element -> Element
 sensorContainer sensorName = above (primaryText sensorName)
     >> padding sensor.padding
-    >> color lightGrey
+    >> color sensorBackgroundColor
     >> marginY sensor.marginY
+    >> link ("./assets/SensorDataSheets/" ++ sensorName ++ ".pdf")
 
 valueContainer : Element -> Element
 valueContainer el = container value.width (heightOf el) bottomLeft el
@@ -51,5 +51,8 @@ viewLabel val =
 
 primaryText : String -> Element
 primaryText = fromString
-    >> style primaryTextStyle
+    >> style primaryStyle
     >> leftAligned
+
+h1 = fromString >> style h1Style >> leftAligned >> marginY 10
+h2 = fromString >> style h2Style >> leftAligned >> marginY 5

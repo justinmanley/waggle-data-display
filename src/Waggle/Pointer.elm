@@ -1,6 +1,6 @@
 module Waggle.Pointer where
 
-import Graphics.Collage (Form, segment, traced, solid)
+import Graphics.Collage (Form, segment, traced, solid, circle, filled, move, group)
 
 import Waggle.Sensor (SensorId)
 import Waggle.View (Side(Right, Left))
@@ -16,6 +16,10 @@ pointer sensorId =
             Right -> 1
         {- end case -})
         endY = -(toFloat (image.height + sensor.height) / 2 ) + (toFloat <| (sensor.height + 2 * sensor.marginY) * (10 - index sensorId))
-    in segment start (endX, endY)
-        |> traced pointerStyle
+        dot = circle 6 |> filled pointerStyle.color |> move start
+    in group [
+        dot,
+        segment start (endX, endY)
+            |> traced pointerStyle
+    ]
 

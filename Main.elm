@@ -12,12 +12,11 @@ import Graphics.Element (
     midRight, bottomRight, bottomLeft,
     relative, absolute,
     widthOf, heightOf,
-    opacity, color)
+    opacity, color, above)
 import Graphics.Collage (collage)
 import List
 import Dict
 import String
-import Color (lightGrey)
 
 import QueueBuffer
 import Chart (chart, toPoint)
@@ -26,7 +25,7 @@ import Waggle.Sensor (..)
 import Waggle.Update (sensorData)
 import Waggle.Pointer (pointer)
 import Waggle.Config as Config
-import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer, valueContainer, viewLabel)
+import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer, valueContainer, viewLabel, h1, h2)
 
 import EnvSense (side, name, order, viewAcceleration, viewMagneticField, viewInfraRedCamera)
 
@@ -57,6 +56,7 @@ view (windowWidth, windowHeight) data =
                 <| Dict.toList rightLayout
         ]
     in layers [
+        (h1 Config.title) `above` (h2 Config.secondary),
         info,
         center
             <| collage windowWidth windowHeight 
