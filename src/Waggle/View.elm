@@ -9,6 +9,7 @@ import Graphics.Element (
 
 import Waggle.Config (sensor)
 
+{-| Tag indicating the side of the image corresponding to each sensor. -}
 type Side = Left | Right
 
 {-| Give an element (the appearance of) top and bottom margins. -}
