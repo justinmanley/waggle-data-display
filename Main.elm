@@ -1,4 +1,4 @@
-module Demo where
+module Main where
 
 import Signal
 import Window
