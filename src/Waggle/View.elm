@@ -24,15 +24,19 @@ marginX margin el = container (widthOf el + 2 * margin) (heightOf el) middle el
 marginY : Int -> Element -> Element
 marginY m el = container (widthOf el) (heightOf el + 2 * m) midBottom el
 
+padding : Int -> Element -> Element
+padding p el = container (widthOf el + 2 * p) (heightOf el + 2 * p) middle el
+
 alignSensor : Side -> Element -> Element
 alignSensor side = 
     let alignment = case side of
         Left -> midRight
         Right -> midLeft
-    in container sensor.width (sensor.height + 2 * sensor.marginY) alignment
+    in container sensor.width (sensor.height + 2 * sensor.marginY + 2 * sensor.padding) alignment
 
 sensorContainer : String -> Element -> Element
 sensorContainer sensorName = above (primaryText sensorName)
+    >> padding sensor.padding
     >> color lightGrey
     >> marginY sensor.marginY
 

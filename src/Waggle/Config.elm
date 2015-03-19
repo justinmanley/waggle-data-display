@@ -18,7 +18,9 @@ updateInterval = 1 * second
 pointerStyle = { defaultLine | color <- lightGrey , width <- 3 }
 
 mutedTextStyle = {}
-primaryTextStyle = { defaultStyle | typeface <- ["EB Garamond", "serif"] }
+primaryTextStyle = { defaultStyle
+    | typeface <- ["EB Garamond", "serif"] 
+    , height <- Just 14 }
 ----------------------------------------------------------------------
 -- SIZES -------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -34,7 +36,8 @@ image =
 sensor = 
     { width = value.width * 4 
     , height =  value.height + 1 * primaryEm
-    , marginY = 2 }
+    , marginY = 2
+    , padding = 0 }
 
 value = 
     { width = chart.width
