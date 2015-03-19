@@ -13,10 +13,10 @@ import Waggle.Sensor (..)
 import Waggle.Config (historySize, sensorDataUrl, updateInterval)
 import Waggle.Parse (parse)
 
-update : Signal (Time, List Reading) -> Signal HistoricalData
+update : Signal (Time, List Sensor) -> Signal SensorBoard
 update currentSensorData = 
     let
-        addAll : (Time, List Reading) -> HistoricalData -> HistoricalData
+        addAll : (Time, List Sensor) -> SensorBoard -> SensorBoard
         addAll (time, current) history = let
                 addValue : Value -> SensorHistory -> SensorHistory
                 addValue value history = 
@@ -27,7 +27,7 @@ update currentSensorData =
                             Nothing -> Just <| QueueBuffer.push val empty
                     in Dict.update value.physicalQuantity updateValue history
 
-                addCurrent : Reading -> HistoricalData -> HistoricalData 
+                addCurrent : Sensor -> SensorBoard -> SensorBoard 
                 addCurrent sensor history = 
                     let updateCurrent maybeSensorHistory = case maybeSensorHistory of
                         Just sensorHistory -> Just <| List.foldr addValue sensorHistory sensor.data
@@ -42,12 +42,12 @@ update currentSensorData =
 ticks : Signal Time
 ticks = every updateInterval
     
-sensorData : Signal HistoricalData
+sensorData : Signal SensorBoard
 sensorData = Http.sendGet (Signal.sampleOn ticks (Signal.constant sensorDataUrl)) 
     |> Signal.map handleResponse
     |> (Time.timestamp >> update)
 
-handleResponse : Http.Response String -> List Reading
+handleResponse : Http.Response String -> List Sensor
 handleResponse response = case response of
     Http.Success str -> parse str
     Http.Waiting -> []

@@ -8,7 +8,7 @@ import Maybe (Maybe(..), andThen, map)
 import Waggle.Sensor (..)
 
 {-| Parse the current list of sensors, as in data/current/current. -}
-parse : String -> List Reading
+parse : String -> List Sensor
 parse = let
         parseLine line sensors = case parseSensor line of
             Just sensor -> sensor :: sensors
@@ -21,7 +21,7 @@ parse = let
 {-| Parse a single line as a sensor.
  -  If the parse fails at any time, returns Nothing; otherwise, returns (Just sensor). 
  -}
-parseSensor : String -> Maybe Reading
+parseSensor : String -> Maybe Sensor
 parseSensor s =
     let data = String.split "," s
     in case data of

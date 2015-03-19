@@ -7,9 +7,10 @@ import QueueBuffer (QueueBuffer)
 
 type alias PhysicalQuantity = String
 type alias SensorId = String
-type alias ValueHistory = QueueBuffer (Time, Float)
+
+type alias SensorBoard = Dict SensorId SensorHistory
 type alias SensorHistory = Dict String ValueHistory
-type alias HistoricalData = Dict SensorId SensorHistory
+type alias ValueHistory = QueueBuffer (Time, Float)
 
 type alias Value = { 
     value : Float, 
@@ -17,7 +18,7 @@ type alias Value = {
     physicalQuantity : PhysicalQuantity 
 }
 
-type alias Reading = { 
+type alias Sensor = { 
     timestamp : String, 
     id : String, 
     data : List Value 

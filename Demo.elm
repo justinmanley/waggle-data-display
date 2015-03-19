@@ -30,7 +30,7 @@ main : Signal Element
 main = Signal.map2 view Window.dimensions sensorData
 
 -- view
-view : (Int, Int) -> HistoricalData -> Element
+view : (Int, Int) -> SensorBoard -> Element
 view (windowWidth, windowHeight) data = 
     let (leftLayout, rightLayout) = Dict.partition (\sensorId _ -> (side sensorId == Left)) data
         center = container windowWidth windowHeight middle
