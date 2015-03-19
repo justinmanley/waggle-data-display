@@ -64,12 +64,6 @@ index sensorId = case sensorId of
 order : SensorId -> SensorId -> Order
 order s1 s2 = compare (index s1) (index s2) 
 
-physicalQuantityName : PhysicalQuantity -> String
-physicalQuantityName physicalQuantity = case physicalQuantity of
-    "Acoustic_Intensity" -> "Acoustic Intensity"
-    "Luminous_Intensity" -> "Luminous Intensity"
-    _ -> physicalQuantity
-
 name : SensorId -> String
 name sensorId = case sensorId of
     "MLX90614ESF-DAA.Melexis.008-2013"      -> "MLX90614ESF"

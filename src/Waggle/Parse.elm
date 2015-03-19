@@ -40,7 +40,7 @@ parseValue : String -> Maybe (InternalValue {})
 parseValue s = case String.split ";" s of
     [physicalQuantity, value, units, extra] -> case String.toFloat value of
         Ok val -> Just {
-            physicalQuantity = physicalQuantity ++ parseExtra extra,
+            physicalQuantity = (parsePhysicalQuantity physicalQuantity) ++ parseExtra extra,
             value = val,
             units = units
         } 
@@ -57,5 +57,11 @@ parseExtra extra = case extra of
     "Barometric" -> ""
     "RMS_3Axis" -> ""
     _ -> extra
+
+parsePhysicalQuantity : String -> PhysicalQuantity
+parsePhysicalQuantity physicalQuantity = case physicalQuantity of
+    "Acoustic_Intensity" -> "Acoustic Intensity"
+    "Luminous_Intensity" -> "Luminous Intensity"
+    _ -> physicalQuantity
 
 
