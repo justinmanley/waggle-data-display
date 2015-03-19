@@ -1,6 +1,10 @@
 module EnvSense where
 
-import Graphics.Element (Element, Position, midRight, midLeft, absolute, container, flow, down, bottomLeft, right, empty)
+import Graphics.Element (
+    Element, Position, 
+    midRight, midLeft, 
+    flow, down, above, bottomLeft, right, 
+    container, empty)
 import Text (Text, leftAligned, rightAligned)
 import Maybe
 import Dict
@@ -112,25 +116,39 @@ side sensorId = case sensorId of
 
     _                                       -> Left
 
+{-| Helper function used in viewMagneticField and viewAcceleration. -}
 viewXYZ : String -> SensorId -> SensorHistory -> Element
 viewXYZ prefix sensorId history = 
     let component suffix = 
             let measurement : String -- necessary in order to avoid compiler error (see https://github.com/elm-lang/elm-compiler/issues/880).
                 measurement = prefix ++ suffix
+                mkComponent { value, units } = 
+                    let val = value |> Util.truncateFloat 2 |> toString 
+                    in suffix ++ ": " ++ val ++ units |> primaryText |> thirds
             in Dict.get measurement history
                 |> Maybe.withDefault (QueueBuffer.empty 0)
-                |> QueueBuffer.mapLast (.value >> Util.truncateFloat 2 >> toString) ""     
-        x = component "X"
-        y = component "Y"
-        z = component "Z"
+                |> QueueBuffer.mapLast mkComponent empty 
 
         thirds = container (round <| toFloat value.width / 3) primaryEm bottomLeft
-        
-        combined = List.map (thirds << primaryText) ["X: " ++ x ++ " ", "Y: " ++ y ++ " ", "Z: " ++ z]
-    in valueContainer <| flow right combined
 
-viewAcceleration = viewXYZ "Acceleration"
-viewMagneticField = viewXYZ "MagneticField"
+    in (primaryText prefix) `above` (flow right [component "X", component "Y", component "Z"])
+
+viewMagneticField sensorId = valueContainer << viewXYZ "Magnetic Field" sensorId
+
+viewAcceleration sensorId history = 
+    let vibration = (Dict.get "Vibration" history)
+            |> Maybe.withDefault (QueueBuffer.empty 0)
+            |> QueueBuffer.mapLast formatVibration empty
+
+        formatVibration { value, units } = "Vibration: " 
+            ++ (value |> Util.truncateFloat 2 |> toString) 
+            ++ units
+            |> primaryText
+
+        -- The vibration is all ready to go - I'm just not sure how
+        -- to fit it into the available space on the page.
+
+    in viewXYZ "Acceleration" sensorId history
 
 viewInfraRedCamera : SensorId -> SensorHistory -> Element
 viewInfraRedCamera sensorId history = 
