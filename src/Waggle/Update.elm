@@ -13,6 +13,7 @@ import Waggle.Sensor (..)
 import Waggle.Config (historySize, sensorDataUrl, updateInterval)
 import Waggle.Parse (parse)
 
+{-| Takes a new reading from the sensors and adds it to the collection of historical sensor data. -}
 update : Signal (Time, List InternalSensor) -> Signal SensorBoard
 update currentSensorData = 
     let

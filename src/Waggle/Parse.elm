@@ -64,7 +64,6 @@ parsePhysicalQuantity physicalQuantity = case physicalQuantity of
     "Luminous_Intensity" -> "Luminous Intensity"
     _ -> physicalQuantity
 
-
 parseUnits : String -> String
 parseUnits units = case units of
     "C" -> "&deg;C"
