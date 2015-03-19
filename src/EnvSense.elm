@@ -1,6 +1,6 @@
 module EnvSense where
 
-import Graphics.Element (Element, Position, midRight, midLeft, absolute, container, flow, down, bottomLeft, right)
+import Graphics.Element (Element, Position, midRight, midLeft, absolute, container, flow, down, bottomLeft, right, empty)
 import Text (Text, leftAligned, rightAligned, plainText)
 import Maybe
 import Dict
@@ -133,10 +133,30 @@ viewXYZ prefix sensorId history =
         thirds = container (round <| toFloat value.width / 3) em bottomLeft
         
         combined = List.map (thirds << plainText) ["X: " ++ x ++ " ", "Y: " ++ y ++ " ", "Z: " ++ z]
-    in flow down [plainText prefix, flow right combined]
+    in flow down [plainText (name sensorId), plainText prefix, flow right combined]
 
 viewAcceleration = viewXYZ "Acceleration"
 viewMagneticField = viewXYZ "MagneticField"
 
---viewInfraRedCamera : SensorId -> SensorHistory -> Element
---viewInfraRedCamera sensorId history = 
+viewInfraRedCamera : SensorId -> SensorHistory -> Element
+viewInfraRedCamera sensorId history = 
+    let casing = "TemperaturePTAT"
+        mkCasingTmp = toString >> ((++) "Casing Temperature: ") >> plainText 
+        casingTemperature = Dict.get casing history
+            |> Maybe.withDefault (QueueBuffer.empty 0)
+            |> QueueBuffer.mapLast (snd >> Util.truncateFloat 2 >> mkCasingTmp) empty
+    
+        values = Dict.values (Dict.remove casing history)
+
+        calculateAverage values = case values of
+            v :: vs -> 
+                let maybeAdd a b = case a of { Just a' -> Maybe.map ((+) a') b; Nothing -> Nothing }
+                in Maybe.map (flip (/) (toFloat <| List.length values))
+                    (List.foldr (QueueBuffer.last >> Maybe.map snd >> maybeAdd) (Just 0) values)
+            [] -> Nothing
+        averageTemperature = case calculateAverage values of
+            Just average -> "Average Temperature: " ++ (average |> Util.truncateFloat 2 >> toString) 
+                |> plainText
+            Nothing -> empty
+
+    in flow down [plainText (name sensorId), casingTemperature, averageTemperature]
