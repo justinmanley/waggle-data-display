@@ -40,7 +40,16 @@ parseValue : String -> Maybe Value
 parseValue s = case String.split ";" s of
     [physicalQuantity, value, units, extra] -> case String.toFloat value of
         Ok val -> Just {
-            physicalQuantity = physicalQuantity ++ (if extra == "none" then "" else extra),
+            physicalQuantity = physicalQuantity ++ (case extra of
+                "none" -> ""
+                "non-standard" -> ""
+                "Voltage_Divider_5V_PDV_Tap_4K7_GND" -> ""
+                "Voltage_Divider_5V_NTC_Tap_68K_GN" -> ""
+                "RH" -> ""
+                "Barometric" -> ""
+                "RMS_3Axis" -> ""
+                _ -> extra
+            ),
             value = val,
             units = units
         } 

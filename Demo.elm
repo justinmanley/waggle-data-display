@@ -8,16 +8,19 @@ import Graphics.Element (
     Element, Position,
     flow, layers,
     image, container, empty, spacer,
-    down, right, middle, inward,
-    midRight,
-    relative, absolute)
+    down, right, left, middle, inward,
+    midRight, bottomRight,
+    relative, absolute,
+    widthOf, heightOf)
+import Graphics.Collage (collage)
 import List
 import Dict
 
 import Waggle.Sensor (..)
-import Waggle.Layout (Side(Left, Right), side, name)
+import Waggle.Layout (Side(Left, Right), side, name, physicalQuantityName, alignSensor, order)
 import Waggle.Update (sensorData)
 import Chart (chart)
+import Waggle.Pointer (pointer)
 import QueueBuffer
 import Waggle.Config as Config
 import Util (truncateFloat)
@@ -31,11 +34,23 @@ view : (Int, Int) -> HistoricalData -> Element
 view (windowWidth, windowHeight) data = 
     let (leftLayout, rightLayout) = Dict.partition (\sensorId _ -> (side sensorId == Left)) data
         center = container windowWidth windowHeight middle
-    in flow right [
-            flow down <| List.map viewSensor <| Dict.toList leftLayout,
+        centerVertically el = container (widthOf el) windowHeight middle el
+        info = (center << flow right << List.map centerVertically) [
+            flow down <| List.map (alignSensor Left << viewSensor) 
+                <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
+                <| Dict.toList leftLayout,
             image (.width Config.image) (.height Config.image) Config.sensorImageUrl,
-            flow down <| List.map viewSensor <| Dict.toList rightLayout
+            flow down <| List.map (alignSensor Right << viewSensor)
+                <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
+                <| Dict.toList rightLayout
         ]
+    in layers [
+        info,
+        center
+            <| collage windowWidth windowHeight 
+            <| List.map pointer 
+            <| Dict.keys data
+    ]
 
 viewSensor : (SensorId, SensorHistory) -> Element
 viewSensor (sensorId, sensorHistory) = case name sensorId of
@@ -52,14 +67,22 @@ viewValue (physicalQuantity, history) =
     let chartSize = (.width Config.chart, .height Config.chart)
         chartMargins = (2, 2)
         historyChart = chart (QueueBuffer.maxSize history) chartSize chartMargins
-            <| QueueBuffer.toList history 
+            <| QueueBuffer.toList history
+        name = leftAligned (fromString <| physicalQuantityName physicalQuantity)
+        lastValue = QueueBuffer.mapLast viewMostRecentValue empty history
+        info = [
+            name, 
+            container 75 (heightOf lastValue) bottomRight lastValue
+        ]
     in
         flow down [
-            leftAligned (fromString physicalQuantity),
-            QueueBuffer.mapLast viewMostRecentValue empty history,
+            flow right info,
             historyChart
         ]
 
 viewMostRecentValue : (Time, Float) -> Element
-viewMostRecentValue (_, val) = leftAligned (fromString <| toString <| truncateFloat 2 val)
+viewMostRecentValue (_, val) = leftAligned 
+    <| fromString 
+    <| toString 
+    <| truncateFloat 2 val
         
