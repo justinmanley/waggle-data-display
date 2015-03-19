@@ -5,9 +5,12 @@ import Graphics.Element (
     midRight, midLeft, 
     midBottom, middle,
     widthOf, heightOf,
-    container)
+    container, color, flow, down, above)
+import Color (lightGrey)
+import Text (plainText)
 
 import Waggle.Config (sensor)
+import Waggle.Sensor (SensorId)
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
 type Side = Left | Right
@@ -25,3 +28,8 @@ alignSensor side =
         Left -> midRight
         Right -> midLeft
     in container sensor.width (sensor.height + 2 * sensor.marginY) alignment
+
+sensorContainer : String -> Element -> Element
+sensorContainer sensorName = above (plainText sensorName)
+    >> color lightGrey
+    >> marginY sensor.marginY

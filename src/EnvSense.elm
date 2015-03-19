@@ -133,7 +133,7 @@ viewXYZ prefix sensorId history =
         thirds = container (round <| toFloat value.width / 3) em bottomLeft
         
         combined = List.map (thirds << plainText) ["X: " ++ x ++ " ", "Y: " ++ y ++ " ", "Z: " ++ z]
-    in flow down [plainText (name sensorId), plainText prefix, flow right combined]
+    in flow right combined
 
 viewAcceleration = viewXYZ "Acceleration"
 viewMagneticField = viewXYZ "MagneticField"
@@ -159,4 +159,4 @@ viewInfraRedCamera sensorId history =
                 |> plainText
             Nothing -> empty
 
-    in flow down [plainText (name sensorId), casingTemperature, averageTemperature]
+    in flow down [casingTemperature, averageTemperature]
