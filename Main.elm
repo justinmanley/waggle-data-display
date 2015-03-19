@@ -28,7 +28,7 @@ import Waggle.Pointer (pointer)
 import Waggle.Config as Config
 import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY)
 
-import EnvSense (side, name, physicalQuantityName, order)
+import EnvSense (side, name, physicalQuantityName, order, viewAcceleration, viewMagneticField)
 
 -- main
 main : Signal Element
@@ -67,6 +67,8 @@ view (windowWidth, windowHeight) data =
 viewSensorHistory : (SensorId, SensorHistory) -> Element
 viewSensorHistory (sensorId, sensorHistory) = case name sensorId of
     "D6T44L06" -> empty
+    "MMA8452Q" -> viewAcceleration sensorId sensorHistory
+    "HMC5883" -> viewMagneticField sensorId sensorHistory
     _ -> marginY (.marginY Config.sensor) <| color lightGrey <| flow down [
             leftAligned (fromString <| name sensorId),    
             Dict.toList sensorHistory

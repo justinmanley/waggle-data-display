@@ -1,10 +1,15 @@
 module EnvSense where
 
-import Graphics.Element (Element, Position, midRight, midLeft, absolute, container)
-import Text (Text, leftAligned, rightAligned)
+import Graphics.Element (Element, Position, midRight, midLeft, absolute, container, flow, down, bottomLeft, right)
+import Text (Text, leftAligned, rightAligned, plainText)
+import Maybe
+import Dict
+import List
 
+import Util
+import QueueBuffer
 import Waggle.Sensor (..)
-import Waggle.Config (sensor)
+import Waggle.Config (sensor, value, em)
 import Waggle.View (Side(Left, Right))
 
 {-| Identifies each sensor with its image on the sensor board. -}
@@ -112,3 +117,26 @@ side sensorId = case sensorId of
     "HIH6130.Honeywell.2011"                -> Left 
 
     _                                       -> Left
+
+viewXYZ : String -> SensorId -> SensorHistory -> Element
+viewXYZ prefix sensorId history = 
+    let component suffix = 
+            let measurement : String -- necessary in order to avoid compiler error (see https://github.com/elm-lang/elm-compiler/issues/880).
+                measurement = prefix ++ suffix
+            in Dict.get measurement history
+                |> Maybe.withDefault (QueueBuffer.empty 0)
+                |> QueueBuffer.mapLast (snd >> Util.truncateFloat 2 >> toString) ""     
+        x = component "X"
+        y = component "Y"
+        z = component "Z"
+
+        thirds = container (round <| toFloat value.width / 3) em bottomLeft
+        
+        combined = List.map (thirds << plainText) ["X: " ++ x ++ " ", "Y: " ++ y ++ " ", "Z: " ++ z]
+    in flow down [plainText prefix, flow right combined]
+
+viewAcceleration = viewXYZ "Acceleration"
+viewMagneticField = viewXYZ "MagneticField"
+
+--viewInfraRedCamera : SensorId -> SensorHistory -> Element
+--viewInfraRedCamera sensorId history = 
