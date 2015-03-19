@@ -3,27 +3,30 @@ module Main where
 import Signal
 import Window
 import Time (Time)
-import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asText)
+import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asText, plainText, concat)
 import Graphics.Element (
     Element, Position,
     flow, layers,
     image, container, empty, spacer,
     down, right, left, middle, inward, midBottom,
-    midRight, bottomRight,
+    midRight, bottomRight, bottomLeft,
     relative, absolute,
     widthOf, heightOf)
 import Graphics.Collage (collage)
 import List
 import Dict
+import String
 
-import Waggle.Sensor (..)
-import Waggle.Layout (Side(Left, Right), side, name, physicalQuantityName, alignSensor, order)
-import Waggle.Update (sensorData)
-import Chart (chart)
-import Waggle.Pointer (pointer)
 import QueueBuffer
-import Waggle.Config as Config
+import Chart (chart)
 import Util (truncateFloat)
+import Waggle.Sensor (..)
+import Waggle.Update (sensorData)
+import Waggle.Pointer (pointer)
+import Waggle.Config as Config
+import Waggle.View (Side(Right, Left), alignSensor)
+
+import EnvSense (side, name, physicalQuantityName, order)
 
 -- main
 main : Signal Element
@@ -39,14 +42,14 @@ view (windowWidth, windowHeight) data =
         info = (center << flow right) [
             (centerVertically << alignBottom)
                 <| flow down 
-                <| List.map (alignSensor Left << viewSensor) 
+                <| List.map (alignSensor Left << viewSensorHistory) 
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList leftLayout,
             centerVertically <|
                 image (.width Config.image) (.height Config.image) Config.sensorImageUrl,
             (centerVertically << alignBottom)
                 <| flow down 
-                <| List.map (alignSensor Right << viewSensor)
+                <| List.map (alignSensor Right << viewSensorHistory)
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList rightLayout
         ]
@@ -58,37 +61,32 @@ view (windowWidth, windowHeight) data =
             <| Dict.keys data
     ]
 
-viewSensor : (SensorId, SensorHistory) -> Element
-viewSensor (sensorId, sensorHistory) = case name sensorId of
+viewSensorHistory : (SensorId, SensorHistory) -> Element
+viewSensorHistory (sensorId, sensorHistory) = case name sensorId of
     "D6T44L06" -> empty
     _ -> flow down [
             leftAligned (fromString <| name sensorId),    
             Dict.toList sensorHistory
-                |> List.map viewValue
+                |> List.map viewValueHistory
                 |> flow right
         ]
 
-viewValue : (PhysicalQuantity, ValueHistory) -> Element
-viewValue (physicalQuantity, history) = 
+viewValueHistory : (PhysicalQuantity, ValueHistory) -> Element
+viewValueHistory (physicalQuantity, history) = 
     let chartSize = (.width Config.chart, .height Config.chart)
         chartMargins = (2, 2)
         historyChart = chart (QueueBuffer.maxSize history) chartSize chartMargins
             <| QueueBuffer.toList history
-        name = leftAligned (fromString <| physicalQuantityName physicalQuantity)
-        lastValue = QueueBuffer.mapLast viewMostRecentValue empty history
-        info = [
-            name, 
-            container 75 (heightOf lastValue) bottomRight lastValue
+        lastValue = QueueBuffer.mapLast (toString << truncateFloat 2 << snd) "" history
+        label = (plainText << List.foldr (++) "") [
+            physicalQuantityName physicalQuantity,
+            ": ",
+            lastValue
         ]
+        valueBox = container (.width Config.value) (heightOf label) bottomLeft
     in
         flow down [
-            flow right info,
+            valueBox label,
             historyChart
         ]
-
-viewMostRecentValue : (Time, Float) -> Element
-viewMostRecentValue (_, val) = leftAligned 
-    <| fromString 
-    <| toString 
-    <| truncateFloat 2 val
         

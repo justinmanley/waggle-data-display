@@ -1,19 +1,11 @@
-module Waggle.Layout where
+module EnvSense where
 
 import Graphics.Element (Element, Position, midRight, midLeft, absolute, container)
 import Text (Text, leftAligned, rightAligned)
 
 import Waggle.Sensor (..)
 import Waggle.Config (sensor)
-
-type Side = Left | Right
-
-alignSensor : Side -> Element -> Element
-alignSensor side = 
-    let alignment = case side of
-        Left -> midRight
-        Right -> midLeft
-    in container sensor.width sensor.height alignment
+import Waggle.View (Side(Left, Right))
 
 {-| Identifies each sensor with its image on the sensor board. -}
 pointerStart : SensorId -> (Float, Float)

@@ -30,7 +30,7 @@ sensor =
     , height = chart.height + 1 * em + value.height }
 
 value = 
-    { width = 200
+    { width = 150
     , height = 1 * em }
 
 ----------------------------------------------------------------------
