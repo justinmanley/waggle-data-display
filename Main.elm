@@ -11,11 +11,13 @@ import Graphics.Element (
     down, right, left, middle, inward, midBottom,
     midRight, bottomRight, bottomLeft,
     relative, absolute,
-    widthOf, heightOf)
+    widthOf, heightOf,
+    opacity, color)
 import Graphics.Collage (collage)
 import List
 import Dict
 import String
+import Color (lightGrey)
 
 import QueueBuffer
 import Chart (chart)
@@ -24,7 +26,7 @@ import Waggle.Sensor (..)
 import Waggle.Update (sensorData)
 import Waggle.Pointer (pointer)
 import Waggle.Config as Config
-import Waggle.View (Side(Right, Left), alignSensor)
+import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY)
 
 import EnvSense (side, name, physicalQuantityName, order)
 
@@ -45,8 +47,9 @@ view (windowWidth, windowHeight) data =
                 <| List.map (alignSensor Left << viewSensorHistory) 
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList leftLayout,
-            centerVertically <|
-                image (.width Config.image) (.height Config.image) Config.sensorImageUrl,
+            centerVertically 
+                <| marginX (.marginX Config.image)
+                <| image (.width Config.image) (.height Config.image) Config.sensorImageUrl,
             (centerVertically << alignBottom)
                 <| flow down 
                 <| List.map (alignSensor Right << viewSensorHistory)
@@ -64,10 +67,11 @@ view (windowWidth, windowHeight) data =
 viewSensorHistory : (SensorId, SensorHistory) -> Element
 viewSensorHistory (sensorId, sensorHistory) = case name sensorId of
     "D6T44L06" -> empty
-    _ -> flow down [
+    _ -> marginY (.marginY Config.sensor) <| color lightGrey <| flow down [
             leftAligned (fromString <| name sensorId),    
             Dict.toList sensorHistory
                 |> List.map viewValueHistory
+                |> List.intersperse (spacer (.marginX Config.value) (.height Config.value))
                 |> flow right
         ]
 

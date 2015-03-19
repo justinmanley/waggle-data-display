@@ -3,7 +3,7 @@ module Waggle.Config where
 import Time (second)
 import Graphics.Element (heightOf)
 import Graphics.Collage (defaultLine)
-import Color (blue)
+import Color (lightGrey)
 import Text (plainText)
 
 {-| The number of readings to hold in memory for each sensor. -}
@@ -15,23 +15,33 @@ updateInterval = 1 * second
 ----------------------------------------------------------------------
 -- STYLES ------------------------------------------------------------
 ----------------------------------------------------------------------
-pointerStyle = { defaultLine | color <- blue , width <- 4 }
+pointerStyle = { defaultLine | color <- lightGrey , width <- 3 }
 
+mutedTextStyle = {}
+primaryTextStyle = {}
 ----------------------------------------------------------------------
 -- SIZES -------------------------------------------------------------
 ----------------------------------------------------------------------
 em = heightOf (plainText "em")
 
-chart = { width = 100, height = 20 }
-image = { width = 441, height = 586 }
+chart = 
+    { width = value.width
+    , height = 20 }
+
+image = 
+    { width = 441
+    , height = 586 
+    , marginX = 32 }
 
 sensor = 
     { width = value.width * 4 
-    , height = chart.height + 1 * em + value.height }
+    , height = chart.height + 1 * em + value.height
+    , marginY = 2 }
 
 value = 
-    { width = 150
-    , height = 1 * em }
+    { width = 160
+    , height = 1 * em
+    , marginX = 16 }
 
 ----------------------------------------------------------------------
 -- URLS --------------------------------------------------------------
