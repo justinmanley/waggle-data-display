@@ -42,7 +42,7 @@ parseValue s = case String.split ";" s of
         Ok val -> Just {
             physicalQuantity = (parsePhysicalQuantity physicalQuantity) ++ parseExtra extra,
             value = val,
-            units = units
+            units = parseUnits units
         } 
         Err _ -> Nothing
     _ -> Nothing
@@ -65,3 +65,9 @@ parsePhysicalQuantity physicalQuantity = case physicalQuantity of
     _ -> physicalQuantity
 
 
+parseUnits : String -> String
+parseUnits units = case units of
+    "C" -> "&deg;C"
+    "F" -> "&deg;F"
+    "Units10B0V5" -> " (uc)"
+    _   -> units

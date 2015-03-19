@@ -127,7 +127,7 @@ viewXYZ prefix sensorId history =
         thirds = container (round <| toFloat value.width / 3) em bottomLeft
         
         combined = List.map (thirds << plainText) ["X: " ++ x ++ " ", "Y: " ++ y ++ " ", "Z: " ++ z]
-    in flow right combined
+    in valueContainer <| flow right combined
 
 viewAcceleration = viewXYZ "Acceleration"
 viewMagneticField = viewXYZ "MagneticField"

@@ -40,7 +40,9 @@ valueContainer : Element -> Element
 valueContainer el = container value.width (heightOf el) bottomLeft el
 
 viewLabel : Value -> Element
-viewLabel val = (plainText << List.foldr (++) "") [
-    val.physicalQuantity,
-    ": ",
-    val.value |> Util.truncateFloat 2 |> toString]
+viewLabel val = 
+    let value = val.value |> Util.truncateFloat 2 |> toString
+    in val.physicalQuantity ++ ": " ++ value ++ val.units
+        |> plainText
+
+--viewSide : Side -> 

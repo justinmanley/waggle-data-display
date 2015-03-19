@@ -39,7 +39,7 @@ sensor =
     , marginY = 2 }
 
 value = 
-    { width = 170
+    { width = 190
     , height = 1 * em
     , marginX = 16 }
 
