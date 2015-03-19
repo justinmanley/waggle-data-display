@@ -17,9 +17,8 @@ pointerStyle = { defaultLine | color <- lightGrey , width <- 3 }
 sensorBackgroundColor = lightGrey
 
 {- Text styles -}
-primaryStyle = defaultStyle 
-headerStyle = { defaultStyle
-    | typeface <- ["EB Garamond", "serif"] }
+primaryStyle = { defaultStyle | height <- Just 14 }
+headerStyle = { defaultStyle | typeface <- ["EB Garamond", "serif"] }
 h1Style = { headerStyle | height <- Just 40 }
 h2Style = { headerStyle | height <- Just 30 }
 
@@ -29,7 +28,7 @@ chart =
     , height = 20 }
 
 image = 
-    { width = 441
+    { width = 293
     , height = 586 
     , marginX = 32 }
 
@@ -37,18 +36,23 @@ sensor =
     { width = value.width * 4 
     , height =  value.height + 1 * primaryEm
     , marginY = 2
-    , padding = 0 }
+    , marginX = 8
+    , padding = 1 }
 
 value = 
     { width = chart.width
     , height = chart.height + 1 * primaryEm
     , marginX = 16 }
 
-primaryEm = (fromString >> style primaryStyle >> leftAligned >> heightOf) "em"
+primaryEm = "em" 
+    |> fromString 
+    |> style primaryStyle 
+    |> leftAligned 
+    |> heightOf
 
 {- Urls -}
 sensorDataUrl = "http://localhost:8000/data/current/current"
-sensorImageUrl = "http://localhost:8000/assets/env-sense.jpg"
+sensorImageUrl = "http://localhost:8000/assets/env-sense-cropped.jpg"
 
 {- Content -}
 title = "EnvSense V1"

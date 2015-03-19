@@ -19,7 +19,7 @@ type Side = Left | Right
 {-| Generates the visual container for a sensor. -}
 sensorContainer : String -> Element -> Element
 sensorContainer sensorName = above (primaryText sensorName)
-    >> padding sensor.padding
+    >> marginX sensor.marginX
     >> color sensorBackgroundColor
     >> marginY sensor.marginY
     >> link ("./assets/SensorDataSheets/" ++ sensorName ++ ".pdf")
