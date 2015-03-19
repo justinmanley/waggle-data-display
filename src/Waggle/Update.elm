@@ -1,4 +1,4 @@
-module Waggle.Update where
+module Waggle.Update (sensorData) where
 
 import Dict
 import List
@@ -14,11 +14,11 @@ import Waggle.Config (historySize, sensorDataUrl, updateInterval)
 import Waggle.Parse (parse)
 
 {-| Takes a new reading from the sensors and adds it to the collection of historical sensor data. -}
-update : Signal (Time, List InternalSensor) -> Signal SensorBoard
-update currentSensorData = 
+update : Signal (Time, List InternalSensor) -> Signal (Time, SensorBoard)
+update signalData = 
     let
-        addAll : (Time, List InternalSensor) -> SensorBoard -> SensorBoard
-        addAll (time, current) history = let
+        addAll : (Time, List InternalSensor) -> (Time, SensorBoard) -> (Time, SensorBoard)
+        addAll (time, currentSensors) (_, history) = let
                 addValue : InternalValue {} -> SensorHistory -> SensorHistory
                 addValue value history = 
                     let empty = QueueBuffer.empty historySize
@@ -35,15 +35,15 @@ update currentSensorData =
                         Nothing -> Just <| Dict.empty
                     in Dict.update sensor.id updateCurrent history 
             in
-                List.foldr addCurrent history current
+                (time, List.foldr addCurrent history currentSensors)
 
     in 
-        Signal.foldp addAll Dict.empty currentSensorData
+        Signal.foldp addAll (0, Dict.empty) signalData
 
 ticks : Signal Time
 ticks = every updateInterval
     
-sensorData : Signal SensorBoard
+sensorData : Signal (Time, SensorBoard)
 sensorData = Http.sendGet (Signal.sampleOn ticks (Signal.constant sensorDataUrl)) 
     |> Signal.map handleResponse
     |> (Time.timestamp >> update)

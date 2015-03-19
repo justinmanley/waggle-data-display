@@ -40,4 +40,4 @@ truncateFloat digits num =
     in case num' of
         [] -> num
         x :: [] -> withDefault num (toMaybe <| String.toFloat x)
-        x :: xs :: _ -> withDefault num (toMaybe <| String.toFloat <| x ++ "." ++ String.left digits xs) 
+        x :: xs :: _ -> withDefault num (toMaybe <| String.toFloat <| x ++ "." ++ String.left digits xs)

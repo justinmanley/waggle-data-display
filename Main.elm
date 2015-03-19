@@ -9,10 +9,10 @@ import Graphics.Element (
     flow, layers,
     image, container, empty, spacer,
     down, right, left, middle, inward, midBottom,
-    midRight, bottomRight, bottomLeft,
+    midRight, bottomRight, bottomLeft, topRight,
     relative, absolute,
     widthOf, heightOf,
-    opacity, color, above)
+    opacity, color, beside)
 import Graphics.Collage (collage)
 import List
 import Dict
@@ -25,7 +25,7 @@ import Waggle.Sensor (..)
 import Waggle.Update (sensorData)
 import Waggle.Pointer (pointer)
 import Waggle.Config as Config
-import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer, valueContainer, viewLabel, h1, h2)
+import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer, valueContainer, viewLabel, h1, h2, datetime)
 
 import EnvSense (side, name, order, viewAcceleration, viewMagneticField, viewInfraRedCamera)
 
@@ -34,8 +34,8 @@ main : Signal Element
 main = Signal.map2 view Window.dimensions sensorData
 
 -- view
-view : (Int, Int) -> SensorBoard -> Element
-view (windowWidth, windowHeight) data = 
+view : (Int, Int) -> (Time, SensorBoard) -> Element
+view (windowWidth, windowHeight) (currentTime, data) = 
     let (leftLayout, rightLayout) = Dict.partition (\sensorId _ -> (side sensorId == Left)) data
         center = container windowWidth windowHeight middle
         centerVertically el = container (widthOf el) windowHeight middle el
@@ -56,7 +56,8 @@ view (windowWidth, windowHeight) data =
                 <| Dict.toList rightLayout
         ]
     in layers [
-        (h1 Config.title) `above` (h2 Config.secondary),
+        h1 Config.title,
+        container windowWidth windowHeight topRight (datetime currentTime),
         info,
         center
             <| collage windowWidth windowHeight 

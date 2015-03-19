@@ -3,11 +3,14 @@ module Waggle.View where
 import Graphics.Element (
     Element, 
     midRight, midLeft, 
-    midBottom, middle,
+    midBottom, middle, midTop,
     widthOf, heightOf,
     container, color, flow, down, above, bottomLeft, link)
 import Text (fromString, style, leftAligned)
 import List
+import FormatDate (formatDate)
+import Date
+import Maybe
 
 import Util
 import Waggle.Config (sensor, value, primaryStyle, h1Style, h2Style, sensorBackgroundColor)
@@ -41,7 +44,7 @@ primaryText = fromString
     >> leftAligned
 
 h1 = fromString >> style h1Style >> leftAligned >> marginY 10
-h2 = fromString >> style h2Style >> leftAligned >> marginY 5
+h2 = fromString >> style h2Style >> leftAligned >> marginY 10
 
 {-| Give an element (the appearance of) top and bottom margins. -}
 marginX : Int -> Element -> Element
@@ -59,3 +62,5 @@ alignSensor side =
         Left -> midRight
         Right -> midLeft
     in container sensor.width (sensor.height + 2 * sensor.marginY + 2 * sensor.padding) alignment
+
+datetime time = h2 <| formatDate "%B %d, %Y at %H:%M:%S" <| Date.fromTime time
