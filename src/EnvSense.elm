@@ -1,7 +1,7 @@
 module EnvSense where
 
 import Graphics.Element (Element, Position, midRight, midLeft, absolute, container, flow, down, bottomLeft, right, empty)
-import Text (Text, leftAligned, rightAligned, plainText)
+import Text (Text, leftAligned, rightAligned)
 import Maybe
 import Dict
 import List
@@ -9,8 +9,8 @@ import List
 import Util
 import QueueBuffer
 import Waggle.Sensor (..)
-import Waggle.Config (sensor, value, em)
-import Waggle.View (Side(Left, Right), valueContainer)
+import Waggle.Config (sensor, value, primaryEm)
+import Waggle.View (Side(Left, Right), valueContainer, primaryText)
 
 {-| Identifies each sensor with its image on the sensor board. -}
 pointerStart : SensorId -> (Float, Float)
@@ -124,9 +124,9 @@ viewXYZ prefix sensorId history =
         y = component "Y"
         z = component "Z"
 
-        thirds = container (round <| toFloat value.width / 3) em bottomLeft
+        thirds = container (round <| toFloat value.width / 3) primaryEm bottomLeft
         
-        combined = List.map (thirds << plainText) ["X: " ++ x ++ " ", "Y: " ++ y ++ " ", "Z: " ++ z]
+        combined = List.map (thirds << primaryText) ["X: " ++ x ++ " ", "Y: " ++ y ++ " ", "Z: " ++ z]
     in valueContainer <| flow right combined
 
 viewAcceleration = viewXYZ "Acceleration"
@@ -135,7 +135,7 @@ viewMagneticField = viewXYZ "MagneticField"
 viewInfraRedCamera : SensorId -> SensorHistory -> Element
 viewInfraRedCamera sensorId history = 
     let casing = "TemperaturePTAT"
-        mkCasingTmp = toString >> ((++) "Casing Temperature: ") >> plainText 
+        mkCasingTmp = toString >> ((++) "Casing Temperature: ") >> primaryText 
         casingTemperature = Dict.get casing history
             |> Maybe.withDefault (QueueBuffer.empty 0)
             |> QueueBuffer.mapLast (.value >> Util.truncateFloat 2 >> mkCasingTmp) empty
@@ -150,7 +150,7 @@ viewInfraRedCamera sensorId history =
             [] -> Nothing
         averageTemperature = case calculateAverage values of
             Just average -> "Average Temperature: " ++ (average |> Util.truncateFloat 2 >> toString) 
-                |> plainText
+                |> primaryText
             Nothing -> empty
 
     in valueContainer <| flow down [casingTemperature, averageTemperature]

@@ -5,13 +5,13 @@ import Graphics.Element (
     midRight, midLeft, 
     midBottom, middle,
     widthOf, heightOf,
-    container, color, flow, down, above, bottomLeft)
+    container, color, flow, down, above, bottomLeft, link)
 import Color (lightGrey)
-import Text (plainText)
+import Text (fromString, style, leftAligned)
 import List
 
 import Util
-import Waggle.Config (sensor, value)
+import Waggle.Config (sensor, value, primaryTextStyle)
 import Waggle.Sensor (Value, SensorId)
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
@@ -32,7 +32,7 @@ alignSensor side =
     in container sensor.width (sensor.height + 2 * sensor.marginY) alignment
 
 sensorContainer : String -> Element -> Element
-sensorContainer sensorName = above (plainText sensorName)
+sensorContainer sensorName = above (primaryText sensorName)
     >> color lightGrey
     >> marginY sensor.marginY
 
@@ -43,6 +43,9 @@ viewLabel : Value -> Element
 viewLabel val = 
     let value = val.value |> Util.truncateFloat 2 |> toString
     in val.physicalQuantity ++ ": " ++ value ++ val.units
-        |> plainText
+        |> primaryText
 
---viewSide : Side -> 
+primaryText : String -> Element
+primaryText = fromString
+    >> style primaryTextStyle
+    >> leftAligned

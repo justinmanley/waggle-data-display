@@ -3,7 +3,7 @@ module Main where
 import Signal
 import Window
 import Time (Time)
-import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asText, plainText, concat)
+import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asText, concat)
 import Graphics.Element (
     Element, Position,
     flow, layers,

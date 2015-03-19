@@ -4,7 +4,7 @@ import Time (second)
 import Graphics.Element (heightOf)
 import Graphics.Collage (defaultLine)
 import Color (lightGrey)
-import Text (plainText)
+import Text (plainText, defaultStyle, leftAligned, style, fromString)
 
 {-| The number of readings to hold in memory for each sensor. -}
 historySize = 60
@@ -18,14 +18,12 @@ updateInterval = 1 * second
 pointerStyle = { defaultLine | color <- lightGrey , width <- 3 }
 
 mutedTextStyle = {}
-primaryTextStyle = {}
+primaryTextStyle = { defaultStyle | typeface <- ["EB Garamond", "serif"] }
 ----------------------------------------------------------------------
 -- SIZES -------------------------------------------------------------
 ----------------------------------------------------------------------
-em = heightOf (plainText "em")
-
 chart = 
-    { width = value.width
+    { width = 190
     , height = 20 }
 
 image = 
@@ -35,14 +33,15 @@ image =
 
 sensor = 
     { width = value.width * 4 
-    , height = chart.height + 1 * em + value.height
+    , height =  value.height + 1 * primaryEm
     , marginY = 2 }
 
 value = 
-    { width = 190
-    , height = 1 * em
+    { width = chart.width
+    , height = chart.height + 1 * primaryEm
     , marginX = 16 }
 
+primaryEm = (fromString >> style primaryTextStyle >> leftAligned >> heightOf) "em"
 ----------------------------------------------------------------------
 -- URLS --------------------------------------------------------------
 ----------------------------------------------------------------------
