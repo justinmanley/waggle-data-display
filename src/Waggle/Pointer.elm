@@ -14,6 +14,6 @@ pointer sensorId =
             Left -> -1
             Right -> 1
         {- end case -})
-        endY = (toFloat image.height / 2) - (toFloat <| sensor.height * (index sensorId))
+        endY = -(toFloat image.height / 2 ) + (toFloat <| sensor.height * (10 - index sensorId)) - (toFloat sensor.height / 2)
     in segment start (endX, endY)
         |> traced pointerStyle

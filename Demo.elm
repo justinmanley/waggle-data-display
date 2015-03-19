@@ -8,7 +8,7 @@ import Graphics.Element (
     Element, Position,
     flow, layers,
     image, container, empty, spacer,
-    down, right, left, middle, inward,
+    down, right, left, middle, inward, midBottom,
     midRight, bottomRight,
     relative, absolute,
     widthOf, heightOf)
@@ -35,12 +35,18 @@ view (windowWidth, windowHeight) data =
     let (leftLayout, rightLayout) = Dict.partition (\sensorId _ -> (side sensorId == Left)) data
         center = container windowWidth windowHeight middle
         centerVertically el = container (widthOf el) windowHeight middle el
-        info = (center << flow right << List.map centerVertically) [
-            flow down <| List.map (alignSensor Left << viewSensor) 
+        alignBottom el = container (widthOf el) (.height Config.image) midBottom el
+        info = (center << flow right) [
+            (centerVertically << alignBottom)
+                <| flow down 
+                <| List.map (alignSensor Left << viewSensor) 
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList leftLayout,
-            image (.width Config.image) (.height Config.image) Config.sensorImageUrl,
-            flow down <| List.map (alignSensor Right << viewSensor)
+            centerVertically <|
+                image (.width Config.image) (.height Config.image) Config.sensorImageUrl,
+            (centerVertically << alignBottom)
+                <| flow down 
+                <| List.map (alignSensor Right << viewSensor)
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList rightLayout
         ]
