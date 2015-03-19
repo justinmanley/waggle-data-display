@@ -5,11 +5,11 @@ import Graphics.Element (
     midRight, midLeft, 
     midBottom, middle,
     widthOf, heightOf,
-    container, color, flow, down, above)
+    container, color, flow, down, above, bottomLeft)
 import Color (lightGrey)
 import Text (plainText)
 
-import Waggle.Config (sensor)
+import Waggle.Config (sensor, value)
 import Waggle.Sensor (SensorId)
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
@@ -33,3 +33,12 @@ sensorContainer : String -> Element -> Element
 sensorContainer sensorName = above (plainText sensorName)
     >> color lightGrey
     >> marginY sensor.marginY
+
+valueContainer : Element -> Element
+valueContainer el = container value.width (heightOf el) bottomLeft el
+
+--viewLabel : Value -> Element
+--viewLabel  = (plainText << List.foldr (++) "") [
+--    physicalQuantityName physicalQuantity,
+--    ": ",
+--    lastValue

@@ -36,3 +36,6 @@ mapLast f default buf = case buf.queue of
             []        -> default
             last :: _ -> f last
         last :: _     -> f last
+
+map : (a -> b) -> QueueBuffer a -> QueueBuffer b
+map f buf = { buf | queue <- Queue.map f buf.queue }

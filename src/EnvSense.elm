@@ -10,7 +10,7 @@ import Util
 import QueueBuffer
 import Waggle.Sensor (..)
 import Waggle.Config (sensor, value, em)
-import Waggle.View (Side(Left, Right))
+import Waggle.View (Side(Left, Right), valueContainer)
 
 {-| Identifies each sensor with its image on the sensor board. -}
 pointerStart : SensorId -> (Float, Float)
@@ -125,7 +125,7 @@ viewXYZ prefix sensorId history =
                 measurement = prefix ++ suffix
             in Dict.get measurement history
                 |> Maybe.withDefault (QueueBuffer.empty 0)
-                |> QueueBuffer.mapLast (snd >> Util.truncateFloat 2 >> toString) ""     
+                |> QueueBuffer.mapLast (.value >> Util.truncateFloat 2 >> toString) ""     
         x = component "X"
         y = component "Y"
         z = component "Z"
@@ -144,7 +144,7 @@ viewInfraRedCamera sensorId history =
         mkCasingTmp = toString >> ((++) "Casing Temperature: ") >> plainText 
         casingTemperature = Dict.get casing history
             |> Maybe.withDefault (QueueBuffer.empty 0)
-            |> QueueBuffer.mapLast (snd >> Util.truncateFloat 2 >> mkCasingTmp) empty
+            |> QueueBuffer.mapLast (.value >> Util.truncateFloat 2 >> mkCasingTmp) empty
     
         values = Dict.values (Dict.remove casing history)
 
@@ -152,11 +152,11 @@ viewInfraRedCamera sensorId history =
             v :: vs -> 
                 let maybeAdd a b = case a of { Just a' -> Maybe.map ((+) a') b; Nothing -> Nothing }
                 in Maybe.map (flip (/) (toFloat <| List.length values))
-                    (List.foldr (QueueBuffer.last >> Maybe.map snd >> maybeAdd) (Just 0) values)
+                    (List.foldr (QueueBuffer.last >> Maybe.map .value >> maybeAdd) (Just 0) values)
             [] -> Nothing
         averageTemperature = case calculateAverage values of
             Just average -> "Average Temperature: " ++ (average |> Util.truncateFloat 2 >> toString) 
                 |> plainText
             Nothing -> empty
 
-    in flow down [casingTemperature, averageTemperature]
+    in valueContainer <| flow down [casingTemperature, averageTemperature]

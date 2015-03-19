@@ -9,17 +9,19 @@ type alias PhysicalQuantity = String
 type alias SensorId = String
 
 type alias SensorBoard = Dict SensorId SensorHistory
-type alias SensorHistory = Dict String ValueHistory
-type alias ValueHistory = QueueBuffer (Time, Float)
+type alias SensorHistory = Dict PhysicalQuantity ValueHistory
+type alias ValueHistory = QueueBuffer Value
 
-type alias Value = { 
+type alias Value = InternalValue { timestamp : Time }
+type alias Sensor = { id : String, data : List Value }
+
+type alias InternalValue a = { a | 
     value : Float, 
     units : String, 
-    physicalQuantity : PhysicalQuantity 
+    physicalQuantity : PhysicalQuantity
 }
 
-type alias Sensor = { 
-    timestamp : String, 
+type alias InternalSensor = { 
     id : String, 
-    data : List Value 
+    data : List (InternalValue {})
 }

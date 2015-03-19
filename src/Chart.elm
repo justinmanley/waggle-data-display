@@ -1,4 +1,4 @@
-module Chart (chart) where
+module Chart where
 
 import Graphics.Element (Element, empty, spacer)
 import Graphics.Collage (path, traced, solid, collage)
@@ -7,7 +7,12 @@ import Signal (Signal, map, constant)
 import Signal.Extra (runBuffer)
 import List
 
+import Waggle.Sensor(Value)
+
 type alias Point a = (a, a)
+
+toPoint : Value -> Point Float
+toPoint { timestamp, value } = (timestamp, value)
 
 -- TODO:
 --     * Change List to a QueueBuffer

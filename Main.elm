@@ -20,13 +20,13 @@ import String
 import Color (lightGrey)
 
 import QueueBuffer
-import Chart (chart)
+import Chart (chart, toPoint)
 import Util (truncateFloat)
 import Waggle.Sensor (..)
 import Waggle.Update (sensorData)
 import Waggle.Pointer (pointer)
 import Waggle.Config as Config
-import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer)
+import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer, valueContainer)
 
 import EnvSense (side, name, physicalQuantityName, order, viewAcceleration, viewMagneticField, viewInfraRedCamera)
 
@@ -80,17 +80,16 @@ viewValueHistory (physicalQuantity, history) =
     let chartSize = (.width Config.chart, .height Config.chart)
         chartMargins = (2, 2)
         historyChart = chart (QueueBuffer.maxSize history) chartSize chartMargins
-            <| QueueBuffer.toList history
-        lastValue = QueueBuffer.mapLast (toString << truncateFloat 2 << snd) "" history
+            <| QueueBuffer.toList (QueueBuffer.map toPoint history)
+        lastValue = QueueBuffer.mapLast (toString << truncateFloat 2 << .value) "" history
         label = (plainText << List.foldr (++) "") [
             physicalQuantityName physicalQuantity,
             ": ",
             lastValue
         ]
-        valueBox = container (.width Config.value) (heightOf label) bottomLeft
     in
         flow down [
-            valueBox label,
+            valueContainer label,
             historyChart
         ]
         
