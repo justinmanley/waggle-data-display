@@ -51,8 +51,8 @@ primaryEm = "em"
     |> heightOf
 
 {- Urls -}
-sensorDataUrl = "http://localhost:8000/data/current/current"
-sensorImageUrl = "http://localhost:8000/assets/env-sense-cropped.jpg"
+sensorDataUrl = "./data/current/current"
+sensorImageUrl = "./assets/env-sense-cropped.jpg"
 
 {- Content -}
 title = "EnvSense V1"

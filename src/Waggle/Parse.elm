@@ -62,13 +62,13 @@ parsePhysicalQuantity : String -> PhysicalQuantity
 parsePhysicalQuantity physicalQuantity = case physicalQuantity of
     "Acoustic_Intensity" -> "Acoustic Intensity"
     "Luminous_Intensity" -> "Luminous Intensity"
-    "MagneticField" -> "Magnetic Field"
+    "Magnetic_Field" -> "Magnetic Field"
     _ -> physicalQuantity
 
 parseUnits : String -> String
 parseUnits units = case units of
     "C" -> "&deg;C"
     "F" -> "&deg;F"
-    "Units10B0V5" -> " (uc)" -- (uc) stands for uncalibrated
+    "Units10B0V5" -> " raw A/D" -- (uc) stands for uncalibrated
     "gauss" -> "G"
     _   -> units

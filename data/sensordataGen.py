@@ -81,7 +81,7 @@ sensors = {
 	},
 	'HMC5883' : {
 		'name' : 'HMC5883.Honeywell.2013',
-		'data': 'MagneticField;' + str("{0:.2f}".format(random.uniform(-8,8))) + ';gauss;X,MagneticField;' + str("{0:.2f}".format(random.uniform(-8,8))) + ';gauss;Y,MagneticField;' + str("{0:.2f}".format(random.uniform(-8,8))) + ';gauss;Z'
+		'data': 'Magnetic_Field;' + str("{0:.2f}".format(random.uniform(-8,8))) + ';gauss;X,Magnetic_Field;' + str("{0:.2f}".format(random.uniform(-8,8))) + ';gauss;Y,Magnetic_Field;' + str("{0:.2f}".format(random.uniform(-8,8))) + ';gauss;Z'
 	}
 }
 

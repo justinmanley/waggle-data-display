@@ -131,43 +131,55 @@ viewXYZ prefix sensorId history =
 
         thirds = container (round <| toFloat value.width / 3) primaryEm bottomLeft
 
-    in (primaryText prefix) `above` (flow right [component "X", component "Y", component "Z"])
+    in flow right [component "X", component "Y", component "Z"]
 
-viewMagneticField sensorId = valueContainer << viewXYZ "Magnetic Field" sensorId
+viewMagneticField sensorId sensorHistory = primaryText "Magnetic Field" 
+    `above` viewXYZ "Magnetic Field" sensorId sensorHistory
+    |> valueContainer
 
 viewAcceleration sensorId history = 
     let vibration = (Dict.get "Vibration" history)
             |> Maybe.withDefault (QueueBuffer.empty 0)
             |> QueueBuffer.mapLast formatVibration empty
 
-        formatVibration { value, units } = "Vibration: " 
+        formatVibration { value, units } = "RMS Vibration: " 
             ++ (value |> Util.truncateFloat 2 |> toString) 
             ++ units
             |> primaryText
 
-        -- The vibration is all ready to go - I'm just not sure how
-        -- to fit it into the available space on the page.
-
-    in viewXYZ "Acceleration" sensorId history
+    in vibration `above` viewXYZ "Acceleration" sensorId history
 
 viewInfraRedCamera : SensorId -> SensorHistory -> Element
 viewInfraRedCamera sensorId history = 
     let casing = "TemperaturePTAT"
-        mkCasingTmp = toString >> ((++) "Casing Temperature: ") >> primaryText 
+        mkCasingTmp temp = 
+            "Casing Temperature: " 
+                ++ (temp.value |> Util.truncateFloat 2 |> toString) 
+                ++ temp.units
+            |> primaryText
+
         casingTemperature = Dict.get casing history
             |> Maybe.withDefault (QueueBuffer.empty 0)
-            |> QueueBuffer.mapLast (.value >> Util.truncateFloat 2 >> mkCasingTmp) empty
+            |> QueueBuffer.mapLast mkCasingTmp empty
     
         values = Dict.values (Dict.remove casing history)
 
         calculateAverage values = case values of
             v :: vs -> 
-                let maybeAdd a b = case a of { Just a' -> Maybe.map ((+) a') b; Nothing -> Nothing }
-                in Maybe.map (flip (/) (toFloat <| List.length values))
-                    (List.foldr (QueueBuffer.last >> Maybe.map .value >> maybeAdd) (Just 0) values)
+                let maybeAdd x state = case x of 
+                        Just y -> case state of 
+                            Just s -> Just { value = s.value + y.value, units = y.units }
+                            Nothing -> Nothing
+                        Nothing -> Nothing
+                in Maybe.map (\total -> { total | value <- total.value / (List.length values |> toFloat) })
+                    (List.foldr (QueueBuffer.last >> maybeAdd) (Just { value = 0, units = "" }) values)
             [] -> Nothing
+
         averageTemperature = case calculateAverage values of
-            Just average -> "Average Temperature: " ++ (average |> Util.truncateFloat 2 >> toString) 
+            Just average -> 
+                "Average Temperature: " 
+                    ++ (average.value |> Util.truncateFloat 2 >> toString) 
+                    ++ average.units
                 |> primaryText
             Nothing -> empty
 
