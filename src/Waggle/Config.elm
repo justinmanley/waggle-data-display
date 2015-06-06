@@ -1,10 +1,10 @@
 module Waggle.Config where
 
-import Time (second)
-import Graphics.Element (heightOf)
-import Graphics.Collage (defaultLine)
-import Color (lightGrey)
-import Text (plainText, defaultStyle, leftAligned, style, fromString)
+import Time exposing (second)
+import Graphics.Element exposing (heightOf, leftAligned)
+import Graphics.Collage exposing (defaultLine)
+import Color exposing (lightGrey)
+import Text exposing (defaultStyle, style, fromString)
 
 {-| The number of readings to hold in memory for each sensor. -}
 historySize = 60

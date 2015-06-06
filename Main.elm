@@ -1,37 +1,51 @@
 module Main where
 
+import Dict
 import Signal
 import Window
-import Time (Time)
-import Text (Text, leftAligned, rightAligned, fromString, height, typeface, asText, concat)
-import Graphics.Element (
+import Time exposing (Time)
+import Text exposing (
+    Text, 
+    fromString, height, 
+    typeface, concat)
+import Graphics.Element exposing (
     Element, Position,
     flow, layers,
     image, container, empty, spacer,
+    show, leftAligned, rightAligned,
     down, right, left, middle, inward, midBottom,
     midRight, bottomRight, bottomLeft, topRight,
     relative, absolute,
     widthOf, heightOf,
     opacity, color, beside)
-import Graphics.Collage (collage)
+import Graphics.Collage exposing (collage)
+import Http
 import List
-import Dict
+import Signal
 import String
+import Task exposing (Task, andThen)
+import Text exposing (Text, fromString, height, typeface, concat)
+import Time exposing (Time)
+import Window
 
 import QueueBuffer
-import Chart (chart, toPoint)
-import Util (truncateFloat)
-import Waggle.Sensor (..)
-import Waggle.Update (sensorData)
-import Waggle.Pointer (pointer)
+import Chart exposing (chart, toPoint)
+import Util exposing (truncateFloat)
+import Waggle.Sensor exposing (..)
+import Waggle.Update exposing (rawData, sensorData)
+import Waggle.Pointer exposing (pointer)
 import Waggle.Config as Config
-import Waggle.View (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer, valueContainer, viewLabel, h1, h2, datetime)
+import Waggle.View exposing (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer, valueContainer, viewLabel, h1, h2, datetime)
 
-import EnvSense (side, name, order, viewAcceleration, viewMagneticField, viewInfraRedCamera)
+import EnvSense exposing (side, name, order, viewAcceleration, viewMagneticField, viewInfraRedCamera)
 
 -- main
 main : Signal Element
 main = Signal.map2 view Window.dimensions sensorData
+
+port runDemo : Task Http.Error ()
+port runDemo = Http.getString Config.sensorDataUrl `andThen` 
+    Signal.send rawData.address
 
 -- view
 view : (Int, Int) -> (Time, SensorBoard) -> Element

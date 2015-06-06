@@ -1,7 +1,7 @@
 module QueueBuffer where
 
 import Queue
-import Queue.Internal (Queue(Queue))
+import Queue.Internal exposing (Queue(Queue))
 import List
 
 type alias QueueBuffer a = {

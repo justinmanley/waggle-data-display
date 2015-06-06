@@ -1,12 +1,12 @@
 module Waggle.Pointer where
 
-import Graphics.Collage (Form, segment, traced, solid, circle, filled, move, group)
+import Graphics.Collage exposing (Form, segment, traced, solid, circle, filled, move, group)
 
-import Waggle.Sensor (SensorId)
-import Waggle.View (Side(Right, Left))
-import Waggle.Config (sensor, image, pointerStyle)
+import Waggle.Sensor exposing (SensorId)
+import Waggle.View exposing (Side(Right, Left))
+import Waggle.Config exposing (sensor, image, pointerStyle)
 
-import EnvSense (pointerStart, side, index)
+import EnvSense exposing (pointerStart, side, index)
 
 pointer : SensorId -> Form
 pointer sensorId = 

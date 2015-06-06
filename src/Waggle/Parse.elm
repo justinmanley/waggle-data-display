@@ -1,11 +1,11 @@
 module Waggle.Parse where
 
 import String
-import Result (Result(..))
+import Result exposing (Result(..))
 import List
-import Maybe (Maybe(..), andThen, map)
+import Maybe exposing (Maybe(..), andThen, map)
 
-import Waggle.Sensor (..)
+import Waggle.Sensor exposing (..)
 
 {-| Parse the current list of sensors, as in data/current/current. -}
 parse : String -> List InternalSensor

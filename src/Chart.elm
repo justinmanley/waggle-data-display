@@ -1,13 +1,13 @@
 module Chart where
 
-import Graphics.Element (Element, empty, spacer)
-import Graphics.Collage (path, traced, solid, collage)
-import Color (black)
-import Signal (Signal, map, constant)
-import Signal.Extra (runBuffer)
+import Graphics.Element exposing (Element, empty, spacer)
+import Graphics.Collage exposing (path, traced, solid, collage)
+import Color exposing (black)
+import Signal exposing (Signal, map, constant)
+import Signal.Extra exposing (runBuffer)
 import List
 
-import Waggle.Sensor(Value)
+import Waggle.Sensor exposing (Value) 
 
 type alias Point a = (a, a)
 

@@ -1,20 +1,21 @@
 module EnvSense where
 
-import Graphics.Element (
+import Graphics.Element exposing (
     Element, Position, 
-    midRight, midLeft, 
+    midRight, midLeft,
+    leftAligned, rightAligned,
     flow, down, above, bottomLeft, right, 
     container, empty)
-import Text (Text, leftAligned, rightAligned)
+import Text exposing (Text)
 import Maybe
 import Dict
 import List
 
 import Util
 import QueueBuffer
-import Waggle.Sensor (..)
-import Waggle.Config (sensor, value, primaryEm)
-import Waggle.View (Side(Left, Right), valueContainer, primaryText)
+import Waggle.Sensor exposing (..)
+import Waggle.Config exposing (sensor, value, primaryEm)
+import Waggle.View exposing (Side(Left, Right), valueContainer, primaryText)
 
 {-| Identifies each sensor with its image on the sensor board. -}
 pointerStart : SensorId -> (Float, Float)

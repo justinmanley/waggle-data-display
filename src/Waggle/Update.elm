@@ -1,17 +1,27 @@
-module Waggle.Update (sensorData) where
+module Waggle.Update (rawData, sensorData) where
 
 import Dict
 import List
 import Maybe
-import Signal
+import Signal exposing (Mailbox)
+import Task exposing (Task, andThen)
 import Time
-import Time (Time, every)
-import Http
+import Time exposing (Time, every)
+import Http exposing (Error)
 
 import QueueBuffer
-import Waggle.Sensor (..)
-import Waggle.Config (historySize, sensorDataUrl, updateInterval)
-import Waggle.Parse (parse)
+import Waggle.Sensor exposing (..)
+import Waggle.Config exposing (historySize, sensorDataUrl, updateInterval)
+import Waggle.Parse exposing (parse)
+
+rawData : Mailbox String
+rawData = Signal.mailbox "" 
+
+sensorData : Signal (Time, SensorBoard)
+sensorData = Signal.sampleOn ticks rawData.signal
+    |> Signal.map parse
+    |> (Time.timestamp >> update)
+   
 
 {-| Takes a new reading from the sensors and adds it to the collection of historical sensor data. -}
 update : Signal (Time, List InternalSensor) -> Signal (Time, SensorBoard)
@@ -43,13 +53,3 @@ update signalData =
 ticks : Signal Time
 ticks = every updateInterval
     
-sensorData : Signal (Time, SensorBoard)
-sensorData = Http.sendGet (Signal.sampleOn ticks (Signal.constant sensorDataUrl)) 
-    |> Signal.map handleResponse
-    |> (Time.timestamp >> update)
-
-handleResponse : Http.Response String -> List InternalSensor
-handleResponse response = case response of
-    Http.Success str -> parse str
-    Http.Waiting -> []
-    Http.Failure err msg -> []

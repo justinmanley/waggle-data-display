@@ -1,20 +1,21 @@
 module Waggle.View where
 
-import Graphics.Element (
+import Graphics.Element exposing (
     Element, 
     midRight, midLeft, 
     midBottom, middle, midTop,
     widthOf, heightOf,
+    leftAligned,
     container, color, flow, down, above, bottomLeft, link)
-import Text (fromString, style, leftAligned)
+import Text exposing (fromString, style)
 import List
-import FormatDate (formatDate)
+import Date.Format exposing (format)
 import Date
 import Maybe
 
 import Util
-import Waggle.Config (sensor, value, primaryStyle, h1Style, h2Style, sensorBackgroundColor)
-import Waggle.Sensor (Value, SensorId)
+import Waggle.Config exposing (sensor, value, primaryStyle, h1Style, h2Style, sensorBackgroundColor)
+import Waggle.Sensor exposing (Value, SensorId)
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
 type Side = Left | Right
@@ -63,4 +64,6 @@ alignSensor side =
         Right -> midLeft
     in container sensor.width (sensor.height + 2 * sensor.marginY + 2 * sensor.padding) alignment
 
-datetime time = h2 <| formatDate "%B %d, %Y at %H:%M:%S" <| Date.fromTime time
+datetime time = h2 
+    <| format "%B %d, %Y at %H:%M:%S" 
+    <| Date.fromTime time

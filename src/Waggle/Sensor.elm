@@ -1,9 +1,9 @@
 module Waggle.Sensor where
 
 import String
-import Dict (..)
-import Time (Time)
-import QueueBuffer (QueueBuffer)
+import Dict exposing (..)
+import Time exposing (Time)
+import QueueBuffer exposing (QueueBuffer)
 
 type alias PhysicalQuantity = String
 type alias SensorId = String
