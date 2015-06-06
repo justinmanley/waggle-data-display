@@ -32,7 +32,7 @@ import QueueBuffer
 import Chart exposing (chart, toPoint)
 import Util exposing (truncateFloat)
 import Waggle.Sensor exposing (..)
-import Waggle.Update exposing (rawData, sensorData)
+import Waggle.Update exposing (getData, sensorData)
 import Waggle.Pointer exposing (pointer)
 import Waggle.Config as Config
 import Waggle.View exposing (Side(Right, Left), alignSensor, marginX, marginY, sensorContainer, valueContainer, viewLabel, h1, h2, datetime)
@@ -43,9 +43,8 @@ import EnvSense exposing (side, name, order, viewAcceleration, viewMagneticField
 main : Signal Element
 main = Signal.map2 view Window.dimensions sensorData
 
-port runDemo : Task Http.Error ()
-port runDemo = Http.getString Config.sensorDataUrl `andThen` 
-    Signal.send rawData.address
+port readData : Signal (Task Http.Error ())
+port readData = getData
 
 -- view
 view : (Int, Int) -> (Time, SensorBoard) -> Element

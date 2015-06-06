@@ -1,4 +1,4 @@
-module Waggle.Update (rawData, sensorData) where
+module Waggle.Update (getData, sensorData) where
 
 import Dict
 import List
@@ -11,7 +11,7 @@ import Http exposing (Error)
 
 import QueueBuffer
 import Waggle.Sensor exposing (..)
-import Waggle.Config exposing (historySize, sensorDataUrl, updateInterval)
+import Waggle.Config as Config
 import Waggle.Parse exposing (parse)
 
 rawData : Mailbox String
@@ -31,7 +31,7 @@ update signalData =
         addAll (time, currentSensors) (_, history) = let
                 addValue : InternalValue {} -> SensorHistory -> SensorHistory
                 addValue value history = 
-                    let empty = QueueBuffer.empty historySize
+                    let empty = QueueBuffer.empty Config.historySize
                         val = { value | timestamp = time }
                         updateValue maybePrev = case maybePrev of
                             Just previous -> Just <| QueueBuffer.push val previous
@@ -51,5 +51,8 @@ update signalData =
         Signal.foldp addAll (0, Dict.empty) signalData
 
 ticks : Signal Time
-ticks = every updateInterval
-    
+ticks = every Config.updateInterval
+ 
+getData : Signal (Task Http.Error ())
+getData = Signal.map (\str -> Http.getString str `andThen` Signal.send rawData.address)
+    <| Signal.sampleOn ticks (Signal.constant Config.sensorDataUrl)
