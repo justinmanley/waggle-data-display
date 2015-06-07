@@ -1,21 +1,73 @@
-module EnvSense where
+module Waggle.View.EnvSense (view) where
 
-import Graphics.Element exposing (
-    Element, Position, 
-    midRight, midLeft,
-    leftAligned, rightAligned,
-    flow, down, above, bottomLeft, right, 
-    container, empty)
+import Graphics.Collage exposing (collage)
+import Graphics.Element exposing 
+    ( Element
+    , middle
+    , widthOf, midBottom, image, layers
+    , flow, down, above, bottomLeft, right 
+    , topRight, spacer
+    , container, empty )
 import Text exposing (Text)
 import Maybe
 import Dict
 import List
+import Time exposing (Time)
 
 import Util
 import QueueBuffer
 import Waggle.Sensor exposing (..)
-import Waggle.Config exposing (sensor, value, primaryEm)
-import Waggle.View exposing (Side(Left, Right), valueContainer, primaryText)
+import Waggle.Config as Config exposing (sensor, value, primaryEm)
+import Waggle.Pointer exposing (pointer)
+import Waggle.View.Util exposing 
+    ( Side(Left, Right)
+    , alignSensor, valueContainer
+    , sensorContainer, viewValueHistory
+    , primaryText, marginX, marginY
+    , h1, h2, datetime )
+
+view : (Int, Int) -> (Time, SensorBoard) -> Element
+view (windowWidth, windowHeight) (currentTime, data) = 
+    let (leftLayout, rightLayout) = Dict.partition (\sensorId _ -> (side sensorId == Left)) data
+        center = container windowWidth windowHeight middle
+        centerVertically el = container (widthOf el) windowHeight middle el
+        alignBottom el = container (widthOf el) (.height Config.image) midBottom el
+        info = (center << flow right) [
+            (centerVertically << alignBottom)
+                <| flow down 
+                <| List.map (alignSensor Left << viewSensorHistory) 
+                <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
+                <| Dict.toList leftLayout,
+            centerVertically 
+                <| marginX (.marginX Config.image)
+                <| image (.width Config.image) (.height Config.image) Config.sensorImageUrl,
+            (centerVertically << alignBottom)
+                <| flow down 
+                <| List.map (alignSensor Right << viewSensorHistory)
+                <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
+                <| Dict.toList rightLayout
+        ]
+    in layers [
+        h1 Config.title,
+        container windowWidth windowHeight topRight (datetime currentTime),
+        info,
+        center
+            <| collage windowWidth windowHeight 
+            <| List.map (\sensorId -> 
+                pointer (pointerStart sensorId) (side sensorId) (index sensorId))
+            <| Dict.keys data
+    ]
+
+viewSensorHistory : (SensorId, SensorHistory) -> Element
+viewSensorHistory (sensorId, sensorHistory) = sensorContainer (name sensorId) (case name sensorId of
+    "D6T44L06" -> viewInfraRedCamera sensorId sensorHistory
+    "MMA8452Q" -> viewAcceleration sensorId sensorHistory
+    "HMC5883" -> viewMagneticField sensorId sensorHistory
+    _ -> Dict.toList sensorHistory
+            |> List.map viewValueHistory
+            |> List.intersperse (spacer (.marginX Config.value) (.height Config.value))
+            |> flow right
+    )
 
 {-| Identifies each sensor with its image on the sensor board. -}
 pointerStart : SensorId -> (Float, Float)
@@ -172,8 +224,10 @@ viewInfraRedCamera sensorId history =
                             Just s -> Just { value = s.value + y.value, units = y.units }
                             Nothing -> Nothing
                         Nothing -> Nothing
-                in Maybe.map (\total -> { total | value <- total.value / (List.length values |> toFloat) })
+                in Maybe.map 
+                    (\total -> { total | value <- total.value / (List.length values |> toFloat) })
                     (List.foldr (QueueBuffer.last >> maybeAdd) (Just { value = 0, units = "" }) values)
+            
             [] -> Nothing
 
         averageTemperature = case calculateAverage values of

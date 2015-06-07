@@ -1,7 +1,8 @@
-module Waggle.View where
+module Waggle.View.Util where
 
+import Dict
 import Graphics.Element exposing (
-    Element, 
+    Element, empty, 
     midRight, midLeft, 
     midBottom, middle, midTop,
     widthOf, heightOf,
@@ -13,9 +14,14 @@ import Date.Format exposing (format)
 import Date
 import Maybe
 
+import Chart exposing (chart, toPoint)
 import Util
-import Waggle.Config exposing (sensor, value, primaryStyle, h1Style, h2Style, sensorBackgroundColor)
-import Waggle.Sensor exposing (Value, SensorId)
+import Waggle.Config as Config exposing 
+    ( sensor, value
+    , primaryStyle, h1Style 
+    , h2Style, sensorBackgroundColor )
+import Waggle.Sensor exposing (Value, SensorId, PhysicalQuantity, ValueHistory)
+import QueueBuffer
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
 type Side = Left | Right
@@ -67,3 +73,15 @@ alignSensor side =
 datetime time = h2 
     <| format "%B %d, %Y at %H:%M:%S" 
     <| Date.fromTime time
+
+viewValueHistory : (PhysicalQuantity, ValueHistory) -> Element
+viewValueHistory (_, history) = 
+    let chartSize = (.width Config.chart, .height Config.chart)
+        historyChart = chart (QueueBuffer.maxSize history) chartSize
+            <| QueueBuffer.toList (QueueBuffer.map toPoint history)
+    in
+        flow down [
+            QueueBuffer.mapLast viewLabel empty history,
+            historyChart
+        ]
+ 
