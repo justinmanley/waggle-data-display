@@ -1,18 +1,20 @@
 module Waggle.View.Util where
 
-import Dict
-import Graphics.Element exposing (
-    Element, empty, 
-    midRight, midLeft, 
-    midBottom, middle, midTop,
-    widthOf, heightOf,
-    leftAligned,
-    container, color, flow, down, above, bottomLeft, link)
-import Text exposing (fromString, style)
-import List
-import Date.Format exposing (format)
 import Date
+import Date.Format exposing (format)
+import Dict
+import Graphics.Element exposing 
+    ( Element, empty 
+    , midRight, midLeft 
+    , midBottom, middle, midTop
+    , widthOf, heightOf
+    , leftAligned
+    , container, color, flow, down, right
+    , beside, above, bottomLeft, link )
+import List
 import Maybe
+import String
+import Text exposing (fromString, style)
 
 import Chart exposing (chart, toPoint)
 import Util
@@ -37,12 +39,6 @@ sensorContainer sensorName = above (primaryText sensorName)
 {-| Generates the visual container for a single value (i.e. measurement). -}
 valueContainer : Element -> Element
 valueContainer el = container value.width (heightOf el) bottomLeft el
-
-viewLabel : Value -> Element
-viewLabel val = 
-    let value = val.value |> Util.truncateFloat 2 |> toString
-    in val.physicalQuantity ++ ": " ++ value ++ val.units
-        |> primaryText
 
 {- Helpers -}
 primaryText : String -> Element
@@ -74,14 +70,17 @@ datetime time = h2
     <| format "%B %d, %Y at %H:%M:%S" 
     <| Date.fromTime time
 
+valueLabel v = primaryText <| String.concat 
+    [ v.physicalQuantity ++ " "
+    , v.value |> Util.truncateFloat 2 |> toString
+    , v.units ]
+
 viewValueHistory : (PhysicalQuantity, ValueHistory) -> Element
 viewValueHistory (_, history) = 
     let chartSize = (.width Config.chart, .height Config.chart)
         historyChart = chart (QueueBuffer.maxSize history) chartSize
             <| QueueBuffer.toList (QueueBuffer.map toPoint history)
+        value v = (v.value |> Util.truncateFloat 2 |> toString) ++ v.units
     in
-        flow down [
-            QueueBuffer.mapLast viewLabel empty history,
-            historyChart
-        ]
+        historyChart `beside` QueueBuffer.mapLast valueLabel empty history
  
