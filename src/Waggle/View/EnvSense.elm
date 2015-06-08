@@ -1,4 +1,4 @@
-module Waggle.View.EnvSense (view) where
+module Waggle.View.EnvSense where
 
 import Graphics.Collage exposing (collage)
 import Graphics.Element exposing 
@@ -26,38 +26,6 @@ import Waggle.View.Util exposing
     , primaryText, marginX, marginY
     , h1, h2, datetime )
 
-view : (Int, Int) -> (Time, SensorBoard) -> Element
-view (windowWidth, windowHeight) (currentTime, data) = 
-    let (leftLayout, rightLayout) = 
-            Dict.partition (\sensorId _ -> (side sensorId == Left)) data
-        center = container windowWidth windowHeight middle
-        centerVertically el = container (widthOf el) windowHeight middle el
-        alignBottom el = container (widthOf el) (.height Config.image) midBottom el
-        info = (center << flow right) 
-            [ (centerVertically << alignBottom)
-                <| flow down 
-                <| List.map (alignSensor Left << viewSensorHistory) 
-                <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
-                <| Dict.toList leftLayout
-            , centerVertically 
-                <| marginX (.marginX Config.image)
-                <| image (.width Config.image) (.height Config.image) Config.sensorImageUrl
-            , (centerVertically << alignBottom)
-                <| flow down 
-                <| List.map (alignSensor Right << viewSensorHistory)
-                <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
-                <| Dict.toList rightLayout
-            ]
-    in layers 
-        [ h1 Config.title
-        , container windowWidth windowHeight topRight (datetime currentTime)
-        , info
-        , center
-            <| collage windowWidth windowHeight 
-            <| List.map (\sensorId -> pointer sensorId pointerStart side index)
-            <| Dict.keys data
-    ]
-
 viewSensorHistory : (SensorId, SensorHistory) -> Element
 viewSensorHistory (sensorId, sensorHistory) = sensorContainer (name sensorId) (case name sensorId of
     "D6T44L06" -> viewInfraRedCamera sensorId sensorHistory
@@ -65,7 +33,6 @@ viewSensorHistory (sensorId, sensorHistory) = sensorContainer (name sensorId) (c
     "HMC5883" -> viewMagneticField sensorId sensorHistory
     _ -> Dict.toList sensorHistory
             |> List.map viewValueHistory
---            |> List.intersperse (spacer (.marginX Config.value) (.height Config.value))
             |> flow down
     )
 
@@ -173,14 +140,14 @@ side sensorId = case sensorId of
 viewXYZ : String -> SensorId -> SensorHistory -> Element
 viewXYZ prefix sensorId history = 
     let component suffix = 
-            let measurement : String -- necessary in order to avoid compiler error (see https://github.com/elm-lang/elm-compiler/issues/880).
-                measurement = prefix ++ suffix
-                mkComponent { value, units } = 
-                    let val = value |> Util.truncateFloat 2 |> toString 
-                    in suffix ++ ": " ++ val ++ units |> primaryText |> thirds
-            in Dict.get measurement history
-                |> Maybe.withDefault (QueueBuffer.empty 0)
-                |> QueueBuffer.mapLast mkComponent empty 
+        let measurement : String -- necessary in order to avoid compiler error (see https://github.com/elm-lang/elm-compiler/issues/880).
+            measurement = prefix ++ suffix
+            mkComponent { value, units } = 
+                let val = value |> Util.truncateFloat 2 |> toString 
+                in suffix ++ ": " ++ val ++ units |> primaryText |> thirds
+        in Dict.get measurement history
+            |> Maybe.withDefault (QueueBuffer.empty 0)
+            |> QueueBuffer.mapLast mkComponent empty 
 
         thirds = container (round <| toFloat value.width / 3) primaryEm bottomLeft
 

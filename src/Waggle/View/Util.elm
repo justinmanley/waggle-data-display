@@ -11,8 +11,6 @@ import Graphics.Element exposing
     , leftAligned
     , container, color, flow, down, right
     , beside, above, bottomLeft, link )
-import List
-import Maybe
 import String
 import Text exposing (fromString, style)
 
@@ -22,7 +20,9 @@ import Waggle.Config as Config exposing
     ( sensor, value
     , primaryStyle, h1Style 
     , h2Style, sensorBackgroundColor )
-import Waggle.Sensor exposing (Value, SensorId, PhysicalQuantity, ValueHistory)
+import Waggle.Sensor exposing 
+    ( Value, SensorId
+    , PhysicalQuantity, ValueHistory )
 import QueueBuffer
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
