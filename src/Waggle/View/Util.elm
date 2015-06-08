@@ -1,7 +1,6 @@
 module Waggle.View.Util where
 
 import Date
-import Date.Format exposing (format)
 import Dict
 import Graphics.Element exposing 
     ( Element, empty 
@@ -66,21 +65,4 @@ alignSensor side =
         Right -> midLeft
     in container sensor.width (sensor.height + 2 * sensor.marginY + 2 * sensor.padding) alignment
 
-datetime time = h2 
-    <| format "%B %d, %Y at %H:%M:%S" 
-    <| Date.fromTime time
 
-valueLabel v = primaryText <| String.concat 
-    [ v.physicalQuantity ++ " "
-    , v.value |> Util.truncateFloat 2 |> toString
-    , v.units ]
-
-viewValueHistory : (PhysicalQuantity, ValueHistory) -> Element
-viewValueHistory (_, history) = 
-    let chartSize = (.width Config.chart, .height Config.chart)
-        historyChart = chart (QueueBuffer.maxSize history) chartSize
-            <| QueueBuffer.toList (QueueBuffer.map toPoint history)
-        value v = (v.value |> Util.truncateFloat 2 |> toString) ++ v.units
-    in
-        historyChart `beside` QueueBuffer.mapLast valueLabel empty history
- 

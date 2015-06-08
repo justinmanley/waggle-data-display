@@ -22,19 +22,9 @@ import Waggle.Pointer exposing (pointer)
 import Waggle.View.Util exposing 
     ( Side(Left, Right)
     , alignSensor, valueContainer
-    , sensorContainer, viewValueHistory
+    , sensorContainer
     , primaryText, marginX, marginY
-    , h1, h2, datetime )
-
-viewSensorHistory : (SensorId, SensorHistory) -> Element
-viewSensorHistory (sensorId, sensorHistory) = sensorContainer (name sensorId) (case name sensorId of
-    "D6T44L06" -> viewInfraRedCamera sensorId sensorHistory
-    "MMA8452Q" -> viewAcceleration sensorId sensorHistory
-    "HMC5883" -> viewMagneticField sensorId sensorHistory
-    _ -> Dict.toList sensorHistory
-            |> List.map viewValueHistory
-            |> flow down
-    )
+    , h1, h2 )
 
 {-| Identifies each sensor with its image on the sensor board. -}
 pointerStart : SensorId -> (Float, Float)

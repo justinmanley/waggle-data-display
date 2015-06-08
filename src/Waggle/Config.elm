@@ -33,16 +33,20 @@ image =
     , marginX = 32 }
 
 sensor = 
-    { width = value.width * 4 
+    { width = chart.width + value.width + physicalQuantity.width 
     , height =  value.height + 1 * primaryEm
     , marginY = 2
     , marginX = 8
     , padding = 1 }
 
 value = 
-    { width = chart.width
+    { width = 90
     , height = chart.height + 1 * primaryEm
     , marginX = 16 }
+
+physicalQuantity = 
+    { width = 130
+    }
 
 primaryEm = "em" 
     |> fromString 
