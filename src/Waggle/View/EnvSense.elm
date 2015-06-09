@@ -18,7 +18,6 @@ import Util
 import QueueBuffer exposing (QueueBuffer)
 import Waggle.Sensor exposing (..)
 import Waggle.Config as Config exposing (sensor, value, primaryEm)
-import Waggle.Pointer exposing (pointer)
 import Waggle.View.Util exposing 
     ( Side(Left, Right)
     , valueContainer
@@ -130,41 +129,33 @@ side sensorId = case sensorId of
 viewXYZ : String -> SensorId -> SensorHistory -> List (String, ValueHistory)
 viewXYZ prefix sensorId history = 
     let component suffix = 
-        let measurement : String -- required b/c of compiler bug (see elm-compiler/issues/880)
+        let measurement : String 
             measurement = prefix ++ suffix 
+            -- ^ required b/c of compiler bug (see elm-compiler/issues/880)
         in Dict.get measurement history
             |> Maybe.withDefault (QueueBuffer.empty 0)
             |> (,) (prefix ++ " " ++ suffix)
     
     in [ component "X", component "Y", component "Z" ]
 
+magneticField : SensorId -> SensorHistory -> SensorHistory
 magneticField sensorId sensorHistory = Dict.fromList
     <| viewXYZ "Magnetic Field" sensorId sensorHistory
 
+acceleration : SensorId -> SensorHistory -> SensorHistory
 acceleration sensorId history = 
     let vibration = (Dict.get "Vibration" history)
             |> Maybe.withDefault (QueueBuffer.empty 0)
 
+        xyz : List (String, ValueHistory)
+        xyz = viewXYZ "Acceleration" sensorId history
+
     in Dict.fromList 
-       <| ("RMS Vibration", vibration) :: (viewXYZ "Acceleration" sensorId history)
+       <| ("RMS Vibration", vibration) :: xyz
        
 infraRedCamera : SensorHistory -> SensorHistory
 infraRedCamera history = 
     let casing = "TemperaturePTAT"
-
-        groupFold : (Value -> Value -> Bool)
-            -> (Value -> Value -> Value)
-            -> List Value
-            -> List Value
-        groupFold eq f list = case list of
-            [] -> []
-            (x :: xs) ->
-                let (ys, zs) = List.partition (eq x) xs     
-                    
-                    total : Value
-                    total = List.foldr f { x | value <- 0 } (x :: ys)
-                    
-                in average (List.length ys + 1) total :: groupFold eq f zs
 
         average : Int -> Value -> Value
         average n sumTotal = { sumTotal | value <- sumTotal.value / toFloat n }
@@ -177,7 +168,7 @@ infraRedCamera history =
 
         averageTemperature : ValueHistory
         averageTemperature = QueueBuffer.fromList Config.historySize 
-            <| groupFold byTimestamp sumValues
+            <| Util.groupFold byTimestamp sumValues (\v -> { v | value <- 0 })
             <| List.concatMap QueueBuffer.toList
             <| Dict.values (Dict.remove casing history)
 

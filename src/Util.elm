@@ -35,3 +35,27 @@ truncateFloat digits num =
         [] -> num
         x :: [] -> withDefault num (toMaybe <| String.toFloat x)
         x :: xs :: _ -> withDefault num (toMaybe <| String.toFloat <| x ++ "." ++ String.left digits xs)
+
+-- | Group a list of values into a list of lists 
+--   according to an equality predicate,
+--   then fold over each sublist. Combining these two operations
+--   allows the initial value for the fold to be computed from 
+--   the seed value for each group.
+--
+--   Note that groupFold is recursive, and so may 
+--   run out of stack frames.
+groupFold : (a -> a -> Bool) -- equality predicate used for grouping
+    -> (a -> b -> b)         -- folding function
+    -> (a -> b)              -- generate initial value for folding
+    -> List a                -- initial list
+    -> List b
+groupFold eq f mkDefault list = case list of
+    [] -> []
+    (x :: xs) ->
+        let (ys, zs) = List.partition (eq x) xs     
+            
+            foldedGroup = List.foldr f (mkDefault x) (x :: ys)
+            
+        in foldedGroup :: groupFold eq f mkDefault zs
+
+
