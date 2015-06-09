@@ -28,7 +28,7 @@ import Waggle.View.EnvSense exposing
     , pointerStart
     , infraRedCamera, magneticField, acceleration )
 import Waggle.View.Util exposing 
-    ( Side(Left, Right), alignSensor
+    ( Side(Left, Right)
     , marginX, marginY
     , h1, h2, primaryText
     , sensorContainer, valueContainer )
@@ -43,7 +43,7 @@ view (windowWidth, windowHeight) (currentTime, data) =
         info = (center << flow right) 
             [ (centerVertically << alignBottom)
                 <| flow down 
-                <| List.map (alignSensor Left << viewSensorHistory) 
+                <| List.map viewSensorHistory 
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList leftLayout
             , centerVertically 
@@ -51,7 +51,7 @@ view (windowWidth, windowHeight) (currentTime, data) =
                 <| image (.width Config.image) (.height Config.image) Config.sensorImageUrl
             , (centerVertically << alignBottom)
                 <| flow down 
-                <| List.map (alignSensor Right << viewSensorHistory)
+                <| List.map viewSensorHistory
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList rightLayout
             ]
