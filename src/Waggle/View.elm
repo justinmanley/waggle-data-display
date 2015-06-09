@@ -30,27 +30,31 @@ import Waggle.View.EnvSense exposing
 import Waggle.View.Util exposing 
     ( Side(Left, Right)
     , marginX, marginY
-    , h1, h2, primaryText
+    , h1, h2, primaryText, hline
     , sensorContainer, valueContainer )
 
 view : (Int, Int) -> (Time, SensorBoard) -> Element
 view (windowWidth, windowHeight) (currentTime, data) = 
     let (leftLayout, rightLayout) = 
             Dict.partition (\sensorId _ -> (side sensorId == Left)) data
+        
+        center : Element -> Element 
         center = container windowWidth windowHeight middle
+        
+        centerVertically : Element -> Element
         centerVertically el = container (widthOf el) windowHeight middle el
-        alignBottom el = container (widthOf el) (.height Config.image) midBottom el
-        info = (center << flow right) 
-            [ (centerVertically << alignBottom)
-                <| flow down 
+
+        dataDisplay : Element
+        dataDisplay = (center << flow right << List.map centerVertically) 
+            [ flow down
+                <| List.intersperse (hline <| .width Config.sensor)
                 <| List.map viewSensorHistory 
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList leftLayout
-            , centerVertically 
-                <| marginX (.marginX Config.image)
+            , marginX (.marginX Config.image)
                 <| image (.width Config.image) (.height Config.image) Config.sensorImageUrl
-            , (centerVertically << alignBottom)
-                <| flow down 
+            , flow down 
+                <| List.intersperse (hline <| .width Config.sensor)
                 <| List.map viewSensorHistory
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList rightLayout
@@ -58,12 +62,8 @@ view (windowWidth, windowHeight) (currentTime, data) =
     in layers 
         [ h1 Config.title
         , container windowWidth windowHeight topRight (datetime currentTime)
-        , info
-        , center
-            <| collage windowWidth windowHeight 
-            <| List.map (\sensorId -> pointer sensorId pointerStart side index)
-            <| Dict.keys data
-    ]
+        , dataDisplay
+        ]
 
 viewSensorHistory : (SensorId, SensorHistory) -> Element
 viewSensorHistory (sensorId, sensorHistory) = 

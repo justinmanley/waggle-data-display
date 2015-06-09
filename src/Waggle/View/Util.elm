@@ -1,5 +1,6 @@
 module Waggle.View.Util where
 
+import Color
 import Date
 import Dict
 import Graphics.Element exposing 
@@ -30,9 +31,6 @@ type Side = Left | Right
 {-| Generates the visual container for a sensor. -}
 sensorContainer : String -> Element -> Element
 sensorContainer sensorName = above (primaryText sensorName)
-    >> marginX sensor.marginX
-    >> color sensorBackgroundColor
-    >> marginY sensor.marginY
     >> link ("./assets/SensorDataSheets/" ++ sensorName ++ ".pdf")
 
 {-| Generates the visual container for a single value (i.e. measurement). -}
@@ -58,3 +56,7 @@ marginY m el = container (widthOf el) (heightOf el + 2 * m) midBottom el
 padding : Int -> Element -> Element
 padding p el = container (widthOf el + 2 * p) (heightOf el + 2 * p) middle el
 
+hline : Int -> Element
+hline width = container width (6 + 1) middle
+    <| color Color.lightGrey 
+    <| container width 1 middle empty 
