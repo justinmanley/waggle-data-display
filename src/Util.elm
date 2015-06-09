@@ -7,7 +7,8 @@ import String
 import Result exposing (toMaybe)
 
 -- Get only the (Just a) values from a list of (Maybe a)s.
--- Unlike map fromJust << filter isJust, this function will never throw a runtime error.
+-- Unlike map fromJust << filter isJust, this function is statically guaranteed 
+-- to never throw a runtime error.
 filterJust : List (Maybe a) -> List a
 filterJust maybes = case maybes of
     []        -> []
@@ -26,13 +27,6 @@ map3 f a b c = case a of
         Just b' -> map (f a' b') c
         Nothing -> Nothing
     Nothing -> Nothing
-
-transpose : List (Maybe a) -> Maybe (List a)
-transpose ms = 
-    let f m s = case s of
-        Nothing -> Nothing
-        Just xs -> map (flip (::) <| xs) m
-    in List.foldr f (Just []) ms
 
 truncateFloat : Int -> Float -> Float
 truncateFloat digits num = 

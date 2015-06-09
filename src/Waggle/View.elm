@@ -26,7 +26,7 @@ import Waggle.Sensor exposing
 import Waggle.View.EnvSense exposing 
     ( side, order, index, name
     , pointerStart
-    , viewInfraRedCamera, viewMagneticField, viewAcceleration )
+    , infraRedCamera, magneticField, acceleration )
 import Waggle.View.Util exposing 
     ( Side(Left, Right), alignSensor
     , marginX, marginY
@@ -66,17 +66,18 @@ view (windowWidth, windowHeight) (currentTime, data) =
     ]
 
 viewSensorHistory : (SensorId, SensorHistory) -> Element
-viewSensorHistory (sensorId, sensorHistory) = sensorContainer (name sensorId) <| 
-    case name sensorId of
-        "D6T44L06" -> viewInfraRedCamera sensorId sensorHistory
-        "MMA8452Q" -> viewAcceleration sensorId sensorHistory
-        "HMC5883" -> viewMagneticField sensorId sensorHistory
-        _ -> Dict.toList sensorHistory
-                |> List.map viewValueHistory
-                |> flow down
+viewSensorHistory (sensorId, sensorHistory) = 
+    let viewOrdinary : SensorHistory -> Element
+        viewOrdinary = Dict.toList >> List.map viewValueHistory >> flow down
+    
+    in sensorContainer (name sensorId) <| case name sensorId of
+        "D6T44L06" -> (infraRedCamera >> viewOrdinary) sensorHistory
+        "MMA8452Q" -> (acceleration sensorId >> viewOrdinary) sensorHistory
+        "HMC5883" -> (magneticField sensorId >> viewOrdinary) sensorHistory
+        _ -> viewOrdinary sensorHistory 
 
 viewValueHistory : (PhysicalQuantity, ValueHistory) -> Element
-viewValueHistory (_, history) = 
+viewValueHistory (name, history) = 
     let chartSize = (.width Config.chart, .height Config.chart)
         
         historyChart = chart (QueueBuffer.maxSize history) chartSize
@@ -84,14 +85,14 @@ viewValueHistory (_, history) =
 
         value v = (v.value |> Util.truncateFloat 2 |> toString) ++ v.units
 
-        label = QueueBuffer.mapLast valueLabel empty history
+        label = QueueBuffer.mapLast (valueLabel name) empty history
 
     in historyChart `beside` label
 
-valueLabel : Value -> Element
-valueLabel v = 
+valueLabel : PhysicalQuantity -> Value -> Element
+valueLabel quantityName v = 
     let name : Element
-        name = v.physicalQuantity
+        name = quantityName
             |> String.toLower >> primaryText 
             |> (\el -> container physicalQuantity.width (heightOf el) midBottom el) 
 

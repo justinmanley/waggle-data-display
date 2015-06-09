@@ -15,13 +15,20 @@ push x buf =
         case Queue.pop buf.queue of
             Just (_, queue) -> { buf | queue <- Queue.push x queue }
             Nothing -> { buf | queue <- Queue.push x Queue.empty }
-       | otherwise -> { buf | queue <- Queue.push x buf.queue, available <- buf.available - 1 }
+       | otherwise -> { buf 
+            | queue <- Queue.push x buf.queue
+            , available <- buf.available - 1 }
 
 empty : Int -> QueueBuffer a
-empty n = { queue = Queue.empty, available = n }
+empty bufSize = { queue = Queue.empty, available = bufSize }
 
 toList : QueueBuffer a -> List a
 toList buf = Queue.toList buf.queue
+
+-- TODO: Replace with a more efficient implementation.
+-- This will require adding fromList to the Queue library.
+fromList : Int -> List a -> QueueBuffer a
+fromList bufSize = List.foldr push (empty bufSize)
 
 maxSize : QueueBuffer a -> Int
 maxSize buf = buf.available + Queue.length buf.queue
@@ -39,3 +46,4 @@ mapLast f default buf = case buf.queue of
 
 map : (a -> b) -> QueueBuffer a -> QueueBuffer b
 map f buf = { buf | queue <- Queue.map f buf.queue }
+

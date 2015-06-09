@@ -7,7 +7,7 @@ import Graphics.Element exposing
     , widthOf, midBottom, image, layers
     , flow, down, above, bottomLeft, right 
     , topRight, spacer
-    , container, empty )
+    , container, empty, below )
 import Text exposing (Text)
 import Maybe
 import Dict
@@ -15,13 +15,13 @@ import List
 import Time exposing (Time)
 
 import Util
-import QueueBuffer
+import QueueBuffer exposing (QueueBuffer)
 import Waggle.Sensor exposing (..)
 import Waggle.Config as Config exposing (sensor, value, primaryEm)
 import Waggle.Pointer exposing (pointer)
 import Waggle.View.Util exposing 
     ( Side(Left, Right)
-    , alignSensor, valueContainer
+    , valueContainer
     , sensorContainer
     , primaryText, marginX, marginY
     , h1, h2 )
@@ -126,78 +126,66 @@ side sensorId = case sensorId of
 
     _                                       -> Left
 
-{-| Helper function used in viewMagneticField and viewAcceleration. -}
-viewXYZ : String -> SensorId -> SensorHistory -> Element
+{-| Helper function used in magneticField and acceleration. -}
+viewXYZ : String -> SensorId -> SensorHistory -> List (String, ValueHistory)
 viewXYZ prefix sensorId history = 
     let component suffix = 
-        let measurement : String -- necessary in order to avoid compiler error (see https://github.com/elm-lang/elm-compiler/issues/880).
-            measurement = prefix ++ suffix
-            mkComponent { value, units } = 
-                let val = value |> Util.truncateFloat 2 |> toString 
-                in suffix ++ ": " ++ val ++ units |> primaryText |> thirds
+        let measurement : String -- required b/c of compiler bug (see elm-compiler/issues/880)
+            measurement = prefix ++ suffix 
         in Dict.get measurement history
             |> Maybe.withDefault (QueueBuffer.empty 0)
-            |> QueueBuffer.mapLast mkComponent empty 
+            |> (,) (prefix ++ " " ++ suffix)
+    
+    in [ component "X", component "Y", component "Z" ]
 
-        thirds = container (round <| toFloat value.width / 3) primaryEm bottomLeft
+magneticField sensorId sensorHistory = Dict.fromList
+    <| viewXYZ "Magnetic Field" sensorId sensorHistory
 
-    in flow right [component "X", component "Y", component "Z"]
-
-viewMagneticField sensorId sensorHistory = primaryText "Magnetic Field" 
-    `above` viewXYZ "Magnetic Field" sensorId sensorHistory
-    |> valueContainer
-
-viewAcceleration sensorId history = 
+acceleration sensorId history = 
     let vibration = (Dict.get "Vibration" history)
             |> Maybe.withDefault (QueueBuffer.empty 0)
-            |> QueueBuffer.mapLast formatVibration empty
 
-        formatVibration { value, units } = "RMS Vibration: " 
-            ++ (value |> Util.truncateFloat 2 |> toString) 
-            ++ units
-            |> primaryText
-
-    in vibration `above` viewXYZ "Acceleration" sensorId history
-
-viewInfraRedCamera : SensorId -> SensorHistory -> Element
-viewInfraRedCamera sensorId history = 
+    in Dict.fromList 
+       <| ("RMS Vibration", vibration) :: (viewXYZ "Acceleration" sensorId history)
+       
+infraRedCamera : SensorHistory -> SensorHistory
+infraRedCamera history = 
     let casing = "TemperaturePTAT"
-        mkCasingTmp temp = 
-            "Casing Temperature: " 
-                ++ (temp.value |> Util.truncateFloat 2 |> toString) 
-                ++ temp.units
-            |> primaryText
 
+        groupFold : (Value -> Value -> Bool)
+            -> (Value -> Value -> Value)
+            -> List Value
+            -> List Value
+        groupFold eq f list = case list of
+            [] -> []
+            (x :: xs) ->
+                let (ys, zs) = List.partition (eq x) xs     
+                    
+                    total : Value
+                    total = List.foldr f { x | value <- 0 } (x :: ys)
+                    
+                in average (List.length ys + 1) total :: groupFold eq f zs
+
+        average : Int -> Value -> Value
+        average n sumTotal = { sumTotal | value <- sumTotal.value / toFloat n }
+
+        byTimestamp : Value -> Value -> Bool 
+        byTimestamp v1 v2 = v1.timestamp == v2.timestamp
+
+        sumValues : Value -> Value -> Value
+        sumValues v1 v2 = { v1 | value <- v1.value + v2.value } 
+
+        averageTemperature : ValueHistory
+        averageTemperature = QueueBuffer.fromList Config.historySize 
+            <| groupFold byTimestamp sumValues
+            <| List.concatMap QueueBuffer.toList
+            <| Dict.values (Dict.remove casing history)
+
+        casingTemperature : ValueHistory
         casingTemperature = Dict.get casing history
             |> Maybe.withDefault (QueueBuffer.empty 0)
-            |> QueueBuffer.mapLast mkCasingTmp empty
-    
-        values = Dict.values (Dict.remove casing history)
 
-        calculateAverage values = case values of
-            v :: vs -> 
-                let maybeAdd x state = case x of 
-                        Just y -> case state of 
-                            Just s -> Just { value = s.value + y.value, units = y.units }
-                            Nothing -> Nothing
-                        Nothing -> Nothing
-                
-                    average total = { total | 
-                        value <- total.value / (List.length values |> toFloat) }
-               
-                    sum = List.foldr (QueueBuffer.last >> maybeAdd) 
-                        <| Just { value = 0, units = "" } 
+    in Dict.fromList
+        [ ("Casing Temperature", casingTemperature)
+        , ("Average Temperature", averageTemperature) ]
 
-                in Maybe.map average (sum values)
-
-            [] -> Nothing
-
-        averageTemperature = case calculateAverage values of
-            Just average -> 
-                "Average Temperature: " 
-                    ++ (average.value |> Util.truncateFloat 2 >> toString) 
-                    ++ average.units
-                |> primaryText
-            Nothing -> empty
-
-    in valueContainer <| flow down [casingTemperature, averageTemperature]
