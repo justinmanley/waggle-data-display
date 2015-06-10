@@ -14,7 +14,6 @@ import Graphics.Element exposing
 import String
 import Text exposing (fromString, style)
 
-import Chart exposing (chart, toPoint)
 import Util
 import Waggle.Config as Config exposing 
     ( sensor, value
@@ -30,7 +29,7 @@ type Side = Left | Right
 
 {-| Generates the visual container for a sensor. -}
 sensorContainer : String -> Element -> Element
-sensorContainer sensorName = above (primaryText sensorName)
+sensorContainer sensorName = above (primaryText sensorName |> leftAligned)
     >> link ("./assets/SensorDataSheets/" ++ sensorName ++ ".pdf")
 
 {-| Generates the visual container for a single value (i.e. measurement). -}
@@ -38,10 +37,8 @@ valueContainer : Element -> Element
 valueContainer el = container value.width (heightOf el) bottomLeft el
 
 {- Helpers -}
-primaryText : String -> Element
-primaryText = fromString
-    >> style primaryStyle
-    >> leftAligned
+primaryText : String -> Text.Text
+primaryText = fromString >> style primaryStyle
 
 h1 = fromString >> style h1Style >> leftAligned >> marginY 10
 h2 = fromString >> style h2Style >> leftAligned >> marginY 10

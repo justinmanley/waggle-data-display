@@ -1,5 +1,6 @@
 module Waggle.View where
 
+import Color
 import Date
 import Date.Format as Date exposing (format) 
 import Dict
@@ -7,18 +8,19 @@ import Graphics.Element exposing
     ( Element
     , container, image, empty 
     , middle, midBottom, midLeft
-    , topRight 
+    , topRight, leftAligned 
     , widthOf, heightOf, layers
     , flow, down, right, beside )
 import Graphics.Collage exposing (collage)
 import Maybe exposing (withDefault)
 import String
+import Text
 import Time exposing (Time)
 
-import Chart exposing (chart, toPoint)
+import Chart exposing (chart)
 import QueueBuffer
 import Util
-import Waggle.Config as Config exposing (physicalQuantity)
+import Waggle.Config as Config exposing (physicalQuantity, primaryStyle)
 import Waggle.Pointer exposing (pointer)
 import Waggle.Sensor exposing 
     ( SensorBoard, SensorId, Value
@@ -78,13 +80,11 @@ viewSensorHistory (sensorId, sensorHistory) =
 
 viewValueHistory : (PhysicalQuantity, ValueHistory) -> Element
 viewValueHistory (name, history) = 
-    let chartSize = (.width Config.chart, .height Config.chart)
-        
-        historyChart = chart (QueueBuffer.maxSize history) chartSize
-            <| QueueBuffer.toList (QueueBuffer.map toPoint history)
+    let historyChart : Element
+        historyChart = chart Config.chart 
+            <| QueueBuffer.map (\{ timestamp, value } -> (timestamp, value)) history
 
-        value v = (v.value |> Util.truncateFloat 2 |> toString) ++ v.units
-
+        label : Element
         label = QueueBuffer.mapLast (valueLabel name) empty history
 
     in historyChart `beside` label
@@ -93,15 +93,18 @@ valueLabel : PhysicalQuantity -> Value -> Element
 valueLabel quantityName v = 
     let name : Element
         name = quantityName
-            |> String.toLower >> primaryText 
-            |> (\el -> container physicalQuantity.width (heightOf el) midBottom el) 
+            |> String.toLower >> primaryText >> leftAligned 
+            |> (\el -> container physicalQuantity.width (heightOf el) midBottom el)
 
-        quantity : Element
-        quantity = String.concat [ v.value |> Util.truncateFloat 2 |> toString, v.units ]
-            |> primaryText
-            |> valueContainer            
+        units : Text.Text
+        units = v.units |> primaryText
 
-    in name `beside` quantity
+        quantity : Text.Text
+        quantity = v.value |> Util.truncateFloat 2 |> toString
+            |> (Text.fromString >> Text.style Config.primaryStyle)
+            |> Text.color Color.red
+
+    in name `beside` (Text.append quantity units |> leftAligned)
 
 datetime : Time -> Element
 datetime time = h2 
