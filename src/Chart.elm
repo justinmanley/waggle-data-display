@@ -1,51 +1,78 @@
 module Chart where
 
 import Graphics.Element exposing (Element, empty, spacer)
-import Graphics.Collage exposing (path, traced, solid, collage)
-import Color exposing (black)
+import Graphics.Collage as Collage 
+import Color
 import Signal exposing (Signal, map, constant)
 import Signal.Extra exposing (runBuffer)
 import List
 
-import Waggle.Sensor exposing (Value) 
+import QueueBuffer exposing (QueueBuffer)
 
 type alias Point a = (a, a)
 
-toPoint : Value -> Point Float
-toPoint { timestamp, value } = (timestamp, value)
-
--- TODO:
---     * Change List to a QueueBuffer
---     * Add a margin at the top and bottom of the image.
---     * Want there to be a constant x-distance between data points, regardless of how many data
---       points are actually being shown.
 -- What about when the max or min is negative?
-chart : Int -> Point Int -> List (Point Float) -> Element
-chart intervals (width, height) data = case List.unzip data of
-    (x :: xs, y :: ys) -> 
-        let bbox = {
-                x = { max = List.foldr max x xs, min = List.foldr min x xs },
-                y = { max = List.foldr max y ys, min = List.foldr min y ys }
-            }
+chart : { width : Int, height : Int } -> QueueBuffer (Point Float) -> Element
+chart { width, height } buf = 
+    let data = QueueBuffer.toList buf
+    in case List.unzip data of
+        -- Only want to display a chart if there are two or more points.
+        (x :: xs :: xss, y :: ys :: yss) -> 
+            let xs' = xs :: xss
+                ys' = ys :: yss
+                
+                dataBbox =
+                -- List.maximum and List.minimum are not total functions.
+                -- Folding using max and min is safer.
+                { x = { max = List.foldr max x xs', min = List.foldr min x xs' }
+                , y = { max = List.foldr max y ys', min = List.foldr min y ys' }
+                }
+        
+                (marginX, marginY) = (2, 2)
 
-            (marginX, marginY) = (2, 2)
+                -- Width and height of the chart, excluding margins 
+                w = width - 2 * marginX |> toFloat
+                h = height - 2 * marginY |> toFloat
+ 
+                -- Offset on the chart. Divide by 2 because the offset is 
+                -- added from the origin, which is at the center of the chart.
+                xOffset = w * (toFloat buf.available / maxSize) / 2
+           
+                maxSize : Float
+                maxSize = QueueBuffer.maxSize buf |> toFloat
 
-            w = toFloat <| width - 2 * marginX
-            h = toFloat <| height - 2 * marginY
+                -- The number of elements actually in the QueueBuffer. 
+                size : Float
+                size = List.length data |> toFloat
 
-            xOffset = 
-                if List.length data < intervals 
-                then (toFloat <| intervals - List.length data) * (w / toFloat intervals)
-                else 0
+                dataXMid = dataBbox.x.min + (dataBbox.x.max - dataBbox.x.min) / 2
+                dataYMid = dataBbox.y.min + (dataBbox.y.max - dataBbox.y.min) / 2
 
-            xMid = bbox.x.min + (bbox.x.max - bbox.x.min) / 2
-            yMid = bbox.y.min + (bbox.y.max - bbox.y.min) / 2
+                -- Scaling factors to map the bounding box for the data onto the 
+                -- visual bounding box for the chart element.
+                xScale = w * (size / maxSize) / (dataBbox.x.max - dataBbox.x.min)
+                yScale = h / (dataBbox.y.max - dataBbox.y.min)
 
-            xScale = w / (bbox.x.max - bbox.x.min)
-            yScale = h / (bbox.y.max - bbox.y.min)
+                -- Map the center of the data to the center of the chart (adjusted
+                -- to fit the # of available data points and scale appropriately.
+                fit : Point Float -> Point Float 
+                fit (x, y) = 
+                    ( xOffset + (x - dataXMid) * xScale
+                    , (y - dataYMid) * yScale 
+                    )
 
-            fit (x, y) = (xOffset + (x - xMid) * xScale, (y - yMid) * yScale)
-            coordinates = List.map fit data
-        in collage width height [traced (solid black) (path coordinates)]
-    _ -> spacer width height
+                dot : Point Float -> Collage.Form
+                dot (x,y) = Collage.move (fit (x,y))
+                    <| Collage.filled Color.red (Collage.circle 2) 
+
+                lineChart : Collage.Form
+                lineChart = List.map fit data
+                    |> Collage.path 
+                    |> Collage.traced (Collage.solid Color.black) 
+
+                latest : Collage.Form
+                latest = QueueBuffer.mapLast dot (Collage.toForm empty) buf
+
+            in Collage.collage width height [ lineChart, latest ]
+        _ -> spacer width height
 
