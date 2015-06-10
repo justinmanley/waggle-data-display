@@ -17,7 +17,10 @@ pointerStyle = { defaultLine | color <- lightGrey , width <- 3 }
 sensorBackgroundColor = lightGrey
 
 {- Text styles -}
-primaryStyle = { defaultStyle | height <- Just 14 }
+primaryStyle = { defaultStyle 
+    | height <- Just 12
+    , typeface <- ["Lato", "sans"] }
+
 headerStyle = { defaultStyle | typeface <- ["EB Garamond", "serif"] }
 h1Style = { headerStyle | height <- Just 40 }
 h2Style = { headerStyle | height <- Just 30 }
@@ -45,7 +48,7 @@ value =
     , marginX = 16 }
 
 physicalQuantity = 
-    { width = 130
+    { width = 140
     }
 
 primaryEm = "em" 
