@@ -36,10 +36,10 @@ chart { width, height } buf =
  
                 -- Offset on the chart. Divide by 2 because the offset is 
                 -- added from the origin, which is at the center of the chart.
-                xOffset = w * (toFloat buf.available / maxSize) / 2
+                xOffset = w * (toFloat buf.available / maxLength) / 2
            
-                maxSize : Float
-                maxSize = QueueBuffer.maxSize buf |> toFloat
+                maxLength : Float
+                maxLength = QueueBuffer.maxLength buf |> toFloat
 
                 -- The number of elements actually in the QueueBuffer. 
                 size : Float
@@ -50,7 +50,7 @@ chart { width, height } buf =
 
                 -- Scaling factors to map the bounding box for the data onto the 
                 -- visual bounding box for the chart element.
-                xScale = w * (size / maxSize) / (dataBbox.x.max - dataBbox.x.min)
+                xScale = w * (size / maxLength) / (dataBbox.x.max - dataBbox.x.min)
                 yScale = h / (dataBbox.y.max - dataBbox.y.min)
 
                 -- Map the center of the data to the center of the chart (adjusted

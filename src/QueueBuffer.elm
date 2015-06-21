@@ -30,8 +30,11 @@ toList buf = Queue.toList buf.queue
 fromList : Int -> List a -> QueueBuffer a
 fromList bufSize = List.foldl push (empty bufSize)
 
-maxSize : QueueBuffer a -> Int
-maxSize buf = buf.available + Queue.length buf.queue
+length : QueueBuffer a -> Int
+length = Queue.length << .queue
+
+maxLength : QueueBuffer a -> Int
+maxLength buf = buf.available + length buf
 
 last : QueueBuffer a -> Maybe a
 last = mapLast Just Nothing
