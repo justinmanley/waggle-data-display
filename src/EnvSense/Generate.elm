@@ -1,18 +1,24 @@
 module EnvSense.Generate (generate) where
 
-import Dict
+import Dict exposing (Dict)
 import Random
 import Stateful exposing (Stateful, andThen)
 import Time exposing (Time)
 
-import Sensor exposing (SensorId, RawReading, RawSensorSnapshot)
+import Sensor exposing (SensorId, RawReading, RawSensorSnapshot, PhysicalQuantity)
+
+type alias GenerateState = 
+    { cache : Dict PhysicalQuantity Float
+    , seed : Random.Seed 
+    } 
 
 generate : Time -> List RawSensorSnapshot
 generate now = 
     let seed = Random.initialSeed <| floor now
-    in Stateful.run (Stateful.sequence sensors) seed |> fst
+        state = { cache = Dict.empty, seed = seed } 
+    in Stateful.run (Stateful.sequence sensors) state |> fst
 
-sensors : List (Stateful Random.Seed RawSensorSnapshot)
+sensors : List (Stateful GenerateState RawSensorSnapshot)
 sensors = 
     [ sensor "MLX90614ESF-DAA.Melexis.008-2013" 
         [ fahrenheit ]
@@ -70,50 +76,54 @@ sensors =
 
     ]
 
-simple : String -> String -> Stateful Random.Seed RawReading
-simple physicalQuantity units = Stateful.get `andThen` \seed ->
-    let (value, seed') = Random.generate (Random.float 0 200) seed
-        reading = 
-            { physicalQuantity = physicalQuantity
-            , units = units
-            , value = value
-            }
-    in Stateful.put seed' `andThen` \_ -> Stateful.return reading
+simple : String -> String -> Stateful GenerateState RawReading
+simple physicalQuantity units = Stateful.get `andThen` \{ cache, seed } ->
+    let reading = { physicalQuantity = physicalQuantity, units = units }
+    in case Dict.get physicalQuantity cache of
+        Just value -> Stateful.return { reading | value = value }
+        Nothing -> 
+            let (value, seed') = Random.generate (Random.float 0 200) seed
+                state = 
+                    { cache = Dict.insert physicalQuantity value cache
+                    , seed = seed' 
+                    } 
+            in Stateful.put state `andThen` \_ -> 
+                Stateful.return { reading | value = value }
 
-fahrenheit : Stateful Random.Seed RawReading
+fahrenheit : Stateful GenerateState RawReading
 fahrenheit = simple "Temperature" "&deg;F"
 
-celsius' : String -> Stateful Random.Seed RawReading
+celsius' : String -> Stateful GenerateState RawReading
 celsius' suffix = simple ("Temperature" ++ suffix) "&deg;C"
 
-celsius : Stateful Random.Seed RawReading
+celsius : Stateful GenerateState RawReading
 celsius = celsius' ""
 
-humidity : Stateful Random.Seed RawReading
+humidity : Stateful GenerateState RawReading
 humidity = simple "Humidity" "%RH"
 
-luminousIntensity : Stateful Random.Seed RawReading
+luminousIntensity : Stateful GenerateState RawReading
 luminousIntensity = simple "Luminous Intensity" " raw A/D"
 
-acousticIntensity : Stateful Random.Seed RawReading
+acousticIntensity : Stateful GenerateState RawReading
 acousticIntensity = simple "Acoustic Intensity" " raw A/D"
 
-pressure : Stateful Random.Seed RawReading
+pressure : Stateful GenerateState RawReading
 pressure = simple "Pressure" "PA"
 
-acceleration : String -> Stateful Random.Seed RawReading
+acceleration : String -> Stateful GenerateState RawReading
 acceleration dimension = simple ("Acceleration" ++ dimension) "g"
 
-vibration : Stateful Random.Seed RawReading
+vibration : Stateful GenerateState RawReading
 vibration = simple "RMS Vibration" "g"
 
-magneticField : String -> Stateful Random.Seed RawReading
+magneticField : String -> Stateful GenerateState RawReading
 magneticField dimension = simple ("Magnetic Field" ++ dimension) "G" 
 
-rawTemperature : Stateful Random.Seed RawReading
+rawTemperature : Stateful GenerateState RawReading
 rawTemperature = simple "Temperature" " raw A/D"
 
-infraRedCamera : List (Stateful Random.Seed RawReading)
+infraRedCamera : List (Stateful GenerateState RawReading)
 infraRedCamera = 
     let 
         cs = List.map toString [1..4]
@@ -122,8 +132,8 @@ infraRedCamera =
         List.map celsius' <| List.concatMap mkCoord cs 
 
 sensor : SensorId 
-    -> List (Stateful Random.Seed RawReading) 
-    -> Stateful Random.Seed RawSensorSnapshot
+    -> List (Stateful GenerateState RawReading) 
+    -> Stateful GenerateState RawSensorSnapshot
 sensor sensorId valueGenerators = 
     Stateful.sequence valueGenerators `andThen` \values -> 
         Stateful.return
