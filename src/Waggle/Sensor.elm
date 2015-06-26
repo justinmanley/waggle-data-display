@@ -23,7 +23,9 @@ type alias InternalValue a = { a |
     physicalQuantity : PhysicalQuantity
 }
 
+type alias RawValue = InternalValue {}
+
 type alias InternalSensor = { 
     id : String, 
-    data : List (InternalValue {})
+    data : List RawValue
 }
