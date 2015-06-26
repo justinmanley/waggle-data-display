@@ -31,7 +31,7 @@ update signalData =
                 addValue : RawReading -> SensorHistory -> SensorHistory
                 addValue value history = 
                     let empty = QueueBuffer.empty Config.historySize
-                        val = { value | timestamp = time }
+                        val = { value - physicalQuantity | timestamp = time }
                         updateValue maybePrev = case maybePrev of
                             Just previous -> Just <| QueueBuffer.push val previous
                             Nothing -> Just <| QueueBuffer.push val empty

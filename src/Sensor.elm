@@ -28,11 +28,10 @@ type alias Reading = InternalReading { timestamp : Time }
 
 {-| Internal types.
  -  Only used in Parse.elm and Update.elm before values are timestamped. -}
-type alias RawReading = InternalReading {}
+type alias RawReading = InternalReading { physicalQuantity : PhysicalQuantity }
 
 type alias InternalReading a = { a 
     | value : Float
-    , units : String
-    , physicalQuantity : PhysicalQuantity }
+    , units : String }
 
 
