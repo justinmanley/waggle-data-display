@@ -1,4 +1,4 @@
-module Waggle.View where
+module View where
 
 import Color
 import Date
@@ -20,16 +20,15 @@ import Time exposing (Time)
 import Chart exposing (chart)
 import QueueBuffer
 import Util
-import Waggle.Config as Config exposing (physicalQuantity, primaryStyle)
-import Waggle.Pointer exposing (pointer)
-import Waggle.Sensor exposing 
+import Config as Config exposing (physicalQuantity, primaryStyle)
+import Sensor exposing 
     ( SensorBoard, SensorId, Value
     , PhysicalQuantity, SensorHistory, ValueHistory )
-import Waggle.View.EnvSense exposing 
+import EnvSense.View exposing 
     ( side, order, index, name
-    , pointerStart
-    , infraRedCamera, magneticField, acceleration )
-import Waggle.View.Util exposing 
+    , infraRedCamera, magneticField, acceleration
+    , viewSensorHistory )
+import View.Util exposing 
     ( Side(Left, Right)
     , marginX, marginY
     , h1, h2, primaryText, hline
@@ -66,17 +65,6 @@ view (windowWidth, windowHeight) (currentTime, data) =
         , container windowWidth windowHeight topRight (datetime currentTime)
         , dataDisplay
         ]
-
-viewSensorHistory : (SensorId, SensorHistory) -> Element
-viewSensorHistory (sensorId, sensorHistory) = 
-    let viewOrdinary : SensorHistory -> Element
-        viewOrdinary = Dict.toList >> List.map viewValueHistory >> flow down
-    
-    in sensorContainer (name sensorId) <| case name sensorId of
-        "D6T44L06" -> (infraRedCamera >> viewOrdinary) sensorHistory
-        "MMA8452Q" -> (acceleration sensorId >> viewOrdinary) sensorHistory
-        "HMC5883" -> (magneticField sensorId >> viewOrdinary) sensorHistory
-        _ -> viewOrdinary sensorHistory 
 
 viewValueHistory : (PhysicalQuantity, ValueHistory) -> Element
 viewValueHistory (name, history) = 

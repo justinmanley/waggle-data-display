@@ -1,4 +1,4 @@
-module Waggle.View.Util where
+module View.Util where
 
 import Color
 import Date
@@ -15,11 +15,11 @@ import String
 import Text exposing (fromString, style)
 
 import Util
-import Waggle.Config as Config exposing 
+import Config as Config exposing 
     ( sensor, value
     , primaryStyle, h1Style 
     , h2Style, sensorBackgroundColor )
-import Waggle.Sensor exposing 
+import Sensor exposing 
     ( Value, SensorId
     , PhysicalQuantity, ValueHistory )
 import QueueBuffer

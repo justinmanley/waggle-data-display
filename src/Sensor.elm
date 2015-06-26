@@ -1,4 +1,4 @@
-module Waggle.Sensor where
+module Sensor where
 
 import String
 import Dict exposing (..)

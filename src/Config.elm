@@ -1,4 +1,4 @@
-module Waggle.Config where
+module Config where
 
 import Time exposing (second)
 import Graphics.Element exposing (heightOf, leftAligned)

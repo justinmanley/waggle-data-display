@@ -1,4 +1,4 @@
-module Waggle.Update (getData, sensorData) where
+module Update (getData, sensorData) where
 
 import Dict
 import List
@@ -10,9 +10,9 @@ import Time exposing (Time, every)
 import Http exposing (Error)
 
 import QueueBuffer
-import Waggle.Sensor exposing (..)
-import Waggle.Config as Config
-import Waggle.Parse exposing (parse)
+import Sensor exposing (..)
+import Config as Config
+import EnvSense.Parse exposing (parse)
 
 rawData : Mailbox String
 rawData = Signal.mailbox "" 

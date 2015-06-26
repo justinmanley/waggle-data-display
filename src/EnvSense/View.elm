@@ -1,4 +1,4 @@
-module Waggle.View.EnvSense where
+module EnvSense.View where
 
 import Graphics.Collage exposing (collage)
 import Graphics.Element exposing 
@@ -16,9 +16,9 @@ import Time exposing (Time)
 
 import Util
 import QueueBuffer exposing (QueueBuffer)
-import Waggle.Sensor exposing (..)
-import Waggle.Config as Config exposing (sensor, value, primaryEm)
-import Waggle.View.Util exposing 
+import Sensor exposing (..)
+import Config as Config exposing (sensor, value, primaryEm)
+import View.Util exposing 
     ( Side(Left, Right)
     , valueContainer
     , sensorContainer
@@ -187,4 +187,16 @@ infraRedCamera history =
     in Dict.fromList
         [ ("Casing Temperature", casingTemperature)
         , ("Average Temperature", averageTemperature) ]
+
+viewSensorHistory : (SensorId, SensorHistory) -> Element
+viewSensorHistory (sensorId, sensorHistory) = 
+    let viewOrdinary : SensorHistory -> Element
+        viewOrdinary = Dict.toList >> List.map viewValueHistory >> flow down
+    
+    in sensorContainer (name sensorId) <| case name sensorId of
+        "D6T44L06" -> (infraRedCamera >> viewOrdinary) sensorHistory
+        "MMA8452Q" -> (acceleration sensorId >> viewOrdinary) sensorHistory
+        "HMC5883" -> (magneticField sensorId >> viewOrdinary) sensorHistory
+        _ -> viewOrdinary sensorHistory 
+
 
