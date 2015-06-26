@@ -5,10 +5,10 @@ import Result exposing (Result(..))
 import List
 import Maybe exposing (Maybe(..), andThen, map)
 
-import Sensor exposing (..)
+import Sensor exposing (RawSensorSnapshot, RawReading, PhysicalQuantity)
 
 {-| Parse the current list of sensors, as in data/current/current. -}
-parse : String -> List InternalSensor
+parse : String -> List RawSensorSnapshot
 parse = let
         parseLine line sensors = case parseSensor line of
             Just sensor -> sensor :: sensors
@@ -21,7 +21,7 @@ parse = let
 {-| Parse a single line as a sensor.
  -  If the parse fails at any time, returns Nothing; otherwise, returns (Just sensor). 
  -}
-parseSensor : String -> Maybe InternalSensor
+parseSensor : String -> Maybe RawSensorSnapshot
 parseSensor s =
     let data = String.split "," s
     in case data of
@@ -36,7 +36,7 @@ parseSensor s =
                 map mkSensor vs
         _ -> Nothing
 
-parseValue : String -> Maybe (InternalValue {})
+parseValue : String -> Maybe RawReading
 parseValue s = case String.split ";" s of
     [physicalQuantity, value, units, extra] -> case String.toFloat value of
         Ok val -> Just {

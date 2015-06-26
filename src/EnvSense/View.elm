@@ -23,7 +23,7 @@ import View.Util exposing
     , valueContainer
     , sensorContainer
     , primaryText, marginX, marginY
-    , h1, h2 )
+    , h1, h2, viewReadingHistory )
 
 {-| Identifies each sensor with its image on the sensor board. -}
 pointerStart : SensorId -> (Float, Float)
@@ -126,7 +126,7 @@ side sensorId = case sensorId of
     _                                       -> Left
 
 {-| Helper function used in magneticField and acceleration. -}
-viewXYZ : String -> SensorId -> SensorHistory -> List (String, ValueHistory)
+viewXYZ : String -> SensorId -> SensorHistory -> List (String, ReadingHistory)
 viewXYZ prefix sensorId history = 
     let component suffix = 
         let measurement : String 
@@ -147,7 +147,7 @@ acceleration sensorId history =
     let vibration = (Dict.get "Vibration" history)
             |> Maybe.withDefault (QueueBuffer.empty 0)
 
-        xyz : List (String, ValueHistory)
+        xyz : List (String, ReadingHistory)
         xyz = viewXYZ "Acceleration" sensorId history
 
     in Dict.fromList 
@@ -157,30 +157,30 @@ infraRedCamera : SensorHistory -> SensorHistory
 infraRedCamera history = 
     let casing = "TemperaturePTAT"
 
-        average : (Int, Value) -> Value
+        average : (Int, Reading) -> Reading
         average (n, sumTotal) = { sumTotal | value <- sumTotal.value / toFloat n }
 
-        byTimestamp : Value -> Value -> Bool 
+        byTimestamp : Reading -> Reading -> Bool 
         byTimestamp v1 v2 = v1.timestamp == v2.timestamp
 
         -- Add two values, keeping track of the number of the number of values that
         -- have been added so far. We use this state to get the average.
-        sumValues : Value -> (Int, Value) -> (Int, Value)
-        sumValues v1 (summed, v2) = 
+        sumReadings : Reading -> (Int, Reading) -> (Int, Reading)
+        sumReadings v1 (summed, v2) = 
             (summed + 1, { v1 | value <- v1.value + v2.value }) 
 
         -- Generate the initial value for a fold (see Util.groupFold).
-        initialValue : Value -> (Int, Value)
-        initialValue seed = (0, { seed | value <- 0 })
+        initialReading : Reading -> (Int, Reading)
+        initialReading seed = (0, { seed | value <- 0 })
 
-        averageTemperature : ValueHistory
+        averageTemperature : ReadingHistory
         averageTemperature = QueueBuffer.fromList Config.historySize
             <| List.map average 
-            <| Util.groupFold byTimestamp sumValues initialValue
+            <| Util.groupFold byTimestamp sumReadings initialReading
             <| List.concatMap QueueBuffer.toList
             <| Dict.values (Dict.remove casing history)
 
-        casingTemperature : ValueHistory
+        casingTemperature : ReadingHistory
         casingTemperature = Dict.get casing history
             |> Maybe.withDefault (QueueBuffer.empty 0)
 
@@ -188,15 +188,16 @@ infraRedCamera history =
         [ ("Casing Temperature", casingTemperature)
         , ("Average Temperature", averageTemperature) ]
 
-viewSensorHistory : (SensorId, SensorHistory) -> Element
-viewSensorHistory (sensorId, sensorHistory) = 
+viewSensor : (SensorId, SensorHistory) -> Element
+viewSensor (sensorId, sensorHistory) = 
     let viewOrdinary : SensorHistory -> Element
-        viewOrdinary = Dict.toList >> List.map viewValueHistory >> flow down
+        viewOrdinary = Dict.toList >> List.map viewReadingHistory >> flow down
     
     in sensorContainer (name sensorId) <| case name sensorId of
         "D6T44L06" -> (infraRedCamera >> viewOrdinary) sensorHistory
         "MMA8452Q" -> (acceleration sensorId >> viewOrdinary) sensorHistory
         "HMC5883" -> (magneticField sensorId >> viewOrdinary) sensorHistory
-        _ -> viewOrdinary sensorHistory 
+        _ -> viewOrdinary sensorHistory
+
 
 

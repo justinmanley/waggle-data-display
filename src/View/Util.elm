@@ -14,15 +14,15 @@ import Graphics.Element exposing
 import String
 import Text exposing (fromString, style)
 
-import Util
+import View.Chart exposing (chart)
 import Config as Config exposing 
     ( sensor, value
     , primaryStyle, h1Style 
-    , h2Style, sensorBackgroundColor )
-import Sensor exposing 
-    ( Value, SensorId
-    , PhysicalQuantity, ValueHistory )
+    , h2Style, sensorBackgroundColor
+    , physicalQuantity )
 import QueueBuffer
+import Sensor exposing (PhysicalQuantity, ReadingHistory, Reading)
+import Util
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
 type Side = Left | Right
@@ -56,4 +56,32 @@ padding p el = container (widthOf el + 2 * p) (heightOf el + 2 * p) middle el
 hline : Int -> Element
 hline width = container width (6 + 1) middle
     <| color Color.lightGrey 
-    <| container width 1 middle empty 
+    <| container width 1 middle empty
+
+viewReadingHistory : (PhysicalQuantity, ReadingHistory) -> Element
+viewReadingHistory (name, history) = 
+    let historyChart : Element
+        historyChart = chart Config.chart 
+            <| QueueBuffer.map (\{ timestamp, value } -> (timestamp, value)) history
+
+        label : Element
+        label = QueueBuffer.mapLast (valueLabel name) empty history
+
+    in historyChart `beside` label
+
+valueLabel : PhysicalQuantity -> Reading -> Element
+valueLabel quantityName v = 
+    let name : Element
+        name = quantityName
+            |> String.toLower >> primaryText >> leftAligned 
+            |> (\el -> container physicalQuantity.width (heightOf el) midBottom el)
+
+        units : Text.Text
+        units = v.units |> primaryText
+
+        quantity : Text.Text
+        quantity = v.value |> Util.truncateFloat 2 |> toString
+            |> (Text.fromString >> Text.style Config.primaryStyle)
+            |> Text.color Color.red
+
+    in name `beside` (Text.append quantity units |> leftAligned)

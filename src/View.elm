@@ -22,12 +22,12 @@ import QueueBuffer
 import Util
 import Config as Config exposing (physicalQuantity, primaryStyle)
 import Sensor exposing 
-    ( SensorBoard, SensorId, Value
-    , PhysicalQuantity, SensorHistory, ValueHistory )
+    ( SensorBoard, SensorId, Reading
+    , PhysicalQuantity, SensorHistory, ReadingHistory )
 import EnvSense.View exposing 
     ( side, order, index, name
     , infraRedCamera, magneticField, acceleration
-    , viewSensorHistory )
+    , viewSensor )
 import View.Util exposing 
     ( Side(Left, Right)
     , marginX, marginY
@@ -49,14 +49,14 @@ view (windowWidth, windowHeight) (currentTime, data) =
         dataDisplay = (center << flow right << List.map centerVertically) 
             [ flow down
                 <| List.intersperse (hline <| .width Config.sensor)
-                <| List.map viewSensorHistory 
+                <| List.map viewSensor 
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList leftLayout
             , marginX (.marginX Config.image)
                 <| image (.width Config.image) (.height Config.image) Config.sensorImageUrl
             , flow down 
                 <| List.intersperse (hline <| .width Config.sensor)
-                <| List.map viewSensorHistory
+                <| List.map viewSensor
                 <| List.sortWith (\s1 s2 -> order (fst s1) (fst s2))
                 <| Dict.toList rightLayout
             ]
@@ -65,34 +65,6 @@ view (windowWidth, windowHeight) (currentTime, data) =
         , container windowWidth windowHeight topRight (datetime currentTime)
         , dataDisplay
         ]
-
-viewValueHistory : (PhysicalQuantity, ValueHistory) -> Element
-viewValueHistory (name, history) = 
-    let historyChart : Element
-        historyChart = chart Config.chart 
-            <| QueueBuffer.map (\{ timestamp, value } -> (timestamp, value)) history
-
-        label : Element
-        label = QueueBuffer.mapLast (valueLabel name) empty history
-
-    in historyChart `beside` label
-
-valueLabel : PhysicalQuantity -> Value -> Element
-valueLabel quantityName v = 
-    let name : Element
-        name = quantityName
-            |> String.toLower >> primaryText >> leftAligned 
-            |> (\el -> container physicalQuantity.width (heightOf el) midBottom el)
-
-        units : Text.Text
-        units = v.units |> primaryText
-
-        quantity : Text.Text
-        quantity = v.value |> Util.truncateFloat 2 |> toString
-            |> (Text.fromString >> Text.style Config.primaryStyle)
-            |> Text.color Color.red
-
-    in name `beside` (Text.append quantity units |> leftAligned)
 
 datetime : Time -> Element
 datetime time = h2 
