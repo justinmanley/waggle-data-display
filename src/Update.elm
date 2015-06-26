@@ -4,6 +4,7 @@ import Dict
 import List
 import Time exposing (Time)
 
+import EnvSense.Generate exposing (generate)
 import QueueBuffer
 import Sensor exposing (..)
 import Config as Config
