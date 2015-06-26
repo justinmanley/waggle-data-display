@@ -76,13 +76,13 @@ sensors =
 
     ]
 
-simple : String -> String -> Stateful GenerateState RawReading
-simple physicalQuantity units = Stateful.get `andThen` \{ cache, seed } ->
+simple : String -> String -> (Float, Float) -> Stateful GenerateState RawReading
+simple physicalQuantity units (lo, hi) = Stateful.get `andThen` \{ cache, seed } ->
     let reading = { physicalQuantity = physicalQuantity, units = units }
     in case Dict.get physicalQuantity cache of
         Just value -> Stateful.return { reading | value = value }
         Nothing -> 
-            let (value, seed') = Random.generate (Random.float 0 200) seed
+            let (value, seed') = Random.generate (Random.float lo hi) seed
                 state = 
                     { cache = Dict.insert physicalQuantity value cache
                     , seed = seed' 
@@ -91,37 +91,40 @@ simple physicalQuantity units = Stateful.get `andThen` \{ cache, seed } ->
                 Stateful.return { reading | value = value }
 
 fahrenheit : Stateful GenerateState RawReading
-fahrenheit = simple "Temperature" "&deg;F"
+fahrenheit = simple "Temperature" "&deg;F" (0, 200) 
 
 celsius' : String -> Stateful GenerateState RawReading
-celsius' suffix = simple ("Temperature" ++ suffix) "&deg;C"
+celsius' suffix = simple ("Temperature" ++ suffix) "&deg;C" (-40, 60)
 
 celsius : Stateful GenerateState RawReading
 celsius = celsius' ""
 
 humidity : Stateful GenerateState RawReading
-humidity = simple "Humidity" "%RH"
+humidity = simple "Humidity" "%RH" (0, 100)
 
 luminousIntensity : Stateful GenerateState RawReading
-luminousIntensity = simple "Luminous Intensity" " raw A/D"
+luminousIntensity = simple "Luminous Intensity" " raw A/D" (0, 1024)
+    |> Stateful.map intify
 
 acousticIntensity : Stateful GenerateState RawReading
-acousticIntensity = simple "Acoustic Intensity" " raw A/D"
+acousticIntensity = simple "Acoustic Intensity" " raw A/D" (0, 1024)
+    |> Stateful.map intify
 
 pressure : Stateful GenerateState RawReading
-pressure = simple "Pressure" "PA"
+pressure = simple "Pressure" "PA" (999120, 1000000)
 
 acceleration : String -> Stateful GenerateState RawReading
-acceleration dimension = simple ("Acceleration" ++ dimension) "g"
-
+acceleration dimension = simple ("Acceleration" ++ dimension) "g" (-10, 10)
+    
 vibration : Stateful GenerateState RawReading
-vibration = simple "RMS Vibration" "g"
+vibration = simple "RMS Vibration" "g" (0, 10) 
 
 magneticField : String -> Stateful GenerateState RawReading
-magneticField dimension = simple ("Magnetic Field" ++ dimension) "G" 
+magneticField dimension = simple ("Magnetic Field" ++ dimension) "G" (-8, 8) 
 
 rawTemperature : Stateful GenerateState RawReading
-rawTemperature = simple "Temperature" " raw A/D"
+rawTemperature = simple "Temperature" " raw A/D" (0, 1024)
+    |> Stateful.map intify
 
 infraRedCamera : List (Stateful GenerateState RawReading)
 infraRedCamera = 
@@ -130,6 +133,9 @@ infraRedCamera =
         mkCoord coord = List.map ((++) <| coord ++ "x") cs
     in 
         List.map celsius' <| List.concatMap mkCoord cs 
+
+intify : RawReading -> RawReading 
+intify v = { v | value <- toFloat <| floor v.value }
 
 sensor : SensorId 
     -> List (Stateful GenerateState RawReading) 
