@@ -17,7 +17,7 @@ import String
 import Text
 import Time exposing (Time)
 
-import Chart exposing (chart)
+import View.Chart exposing (chart)
 import QueueBuffer
 import Util
 import Config as Config exposing (physicalQuantity, primaryStyle)
