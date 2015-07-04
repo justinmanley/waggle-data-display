@@ -1,38 +1,20 @@
-module View where
+module View (view) where
 
-import Color
 import Date
 import Date.Format as Date exposing (format) 
 import Dict
 import Graphics.Element exposing 
     ( Element
-    , container, image, empty 
-    , middle, midBottom, midLeft
-    , topRight, leftAligned 
-    , widthOf, heightOf, layers
-    , flow, down, right, beside )
-import Graphics.Collage exposing (collage)
-import Maybe exposing (withDefault)
-import String
-import Text
+    , container, image
+    , middle, topRight
+    , widthOf, layers
+    , flow, down, right )
 import Time exposing (Time)
 
-import View.Chart exposing (chart)
-import QueueBuffer
-import Util
-import Config as Config exposing (physicalQuantity, primaryStyle)
-import Sensor exposing 
-    ( SensorBoard, SensorId, Reading
-    , PhysicalQuantity, SensorHistory, ReadingHistory )
-import EnvSense.View exposing 
-    ( side, order, index, name
-    , infraRedCamera, magneticField, acceleration
-    , viewSensor )
-import View.Util exposing 
-    ( Side(Left, Right)
-    , marginX, marginY
-    , h1, h2, primaryText, hline
-    , sensorContainer, valueContainer )
+import Config exposing ( physicalQuantity, primaryStyle )
+import Sensor exposing ( SensorBoard )
+import EnvSense.View exposing ( side, order, viewSensor )
+import View.Util exposing ( Side(Left, Right), marginX, h1, h2, hline )
 
 view : (Int, Int) -> (Time, SensorBoard) -> Element
 view (windowWidth, windowHeight) (currentTime, data) = 
