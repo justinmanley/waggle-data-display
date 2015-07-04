@@ -1,14 +1,14 @@
 ### Waggle Data Display
 
-This application displays incoming data reported by an array of sensors measuring temperature, humidity, vibration, magnetic field, acoustic and luminous intensity, and other environmental quantities.
+This application displays incoming data reported by sensors using [Waggle](http://www.mcs.anl.gov/project/waggle-open-platform-intelligent-attentive-sensors), an open platform for environmental sensors created at [Argonne National Lab](http://www.anl.gov/).
 
-The data display is written in [Elm](http://elm-lang.org/), a functional reactive programming language for web programming.
+This data display application is written in [Elm](http://elm-lang.org/), a functional reactive programming language for web programming.
 
-View a [demo of the data display](). Note that this demo displays randomly generated data, not live sensor data.
+View a [demo of the data display](). Note that this demo displays randomly generated data, not actual data.
 
 ### Development
 
-To run this demo yourself, you'll need to download the [Elm Platform](http://elm-lang.org/install). Once you've set up the Elm Platform, you can build the project by typing at the command line in the root of this repository:
+To run this demo yourself, you'll need to download the [Elm Platform](http://elm-lang.org/install). Once you've set up the Elm Platform, you can build the project by typing at the command line:
 
 ```bash
 elm make Main.elm
