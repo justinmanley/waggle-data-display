@@ -5,23 +5,22 @@ import Date
 import Dict
 import Graphics.Element exposing 
     ( Element, empty 
-    , midRight, midLeft 
-    , midBottom, middle, midTop
+    , midBottom, middle
     , widthOf, heightOf
     , leftAligned
-    , container, color, flow, down, right
+    , container, color
     , beside, above, bottomLeft, link )
 import String
-import Text exposing (fromString, style)
+import Text exposing ( fromString, style )
 
-import View.Chart exposing (chart)
-import Config as Config exposing 
+import View.Chart exposing ( chart )
+import Config exposing 
     ( sensor, value
     , primaryStyle, h1Style 
-    , h2Style, sensorBackgroundColor
+    , h2Style
     , physicalQuantity )
 import QueueBuffer
-import Sensor exposing (PhysicalQuantity, ReadingHistory, Reading)
+import Sensor exposing ( PhysicalQuantity, ReadingHistory, Reading )
 import Util
 
 {-| Tag indicating the side of the image corresponding to each sensor. -}
