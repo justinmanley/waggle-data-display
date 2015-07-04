@@ -1,29 +1,20 @@
 module EnvSense.View where
 
-import Graphics.Collage exposing (collage)
-import Graphics.Element exposing 
-    ( Element
-    , middle
-    , widthOf, midBottom, image, layers
-    , flow, down, above, bottomLeft, right 
-    , topRight, spacer
-    , container, empty, below )
-import Text exposing (Text)
+import Graphics.Collage exposing ( collage )
+import Graphics.Element exposing ( Element, flow, down, empty )
+import Text exposing ( Text )
 import Maybe
 import Dict
 import List
-import Time exposing (Time)
+import Time exposing ( Time )
 
 import Util
-import QueueBuffer exposing (QueueBuffer)
+import QueueBuffer exposing ( QueueBuffer )
 import Sensor exposing (..)
-import Config as Config exposing (sensor, value, primaryEm)
+import Config exposing ( sensor, value )
 import View.Util exposing 
     ( Side(Left, Right)
-    , valueContainer
-    , sensorContainer
-    , primaryText, marginX, marginY
-    , h1, h2, viewReadingHistory )
+    , sensorContainer, viewReadingHistory )
 
 {-| Identifies each sensor with its image on the sensor board. -}
 pointerStart : SensorId -> (Float, Float)
