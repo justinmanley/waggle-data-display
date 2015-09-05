@@ -1,27 +1,13 @@
-module Update (getData, sensorData) where
+module Update (update) where
 
 import Dict
 import List
-import Maybe
-import Signal exposing (Mailbox)
-import Task exposing (Task, andThen)
-import Time
-import Time exposing (Time, every)
-import Http exposing (Error)
+import Time exposing (Time)
 
 import QueueBuffer
 import Sensor exposing (..)
 import Config as Config
-import EnvSense.Parse exposing (parse)
 
-rawData : Mailbox String
-rawData = Signal.mailbox "" 
-
-sensorData : Signal (Time, SensorBoard)
-sensorData = Signal.sampleOn ticks rawData.signal
-    |> Signal.map parse
-    |> (Time.timestamp >> update)
-   
 {-| Takes a new reading from the sensors and adds it to the collection of historical sensor data. -}
 update : Signal (Time, List RawSensorSnapshot) -> Signal (Time, SensorBoard)
 update signalData = 
@@ -48,10 +34,3 @@ update signalData =
 
     in 
         Signal.foldp addAll (0, Dict.empty) signalData
-
-ticks : Signal Time
-ticks = every Config.updateInterval
- 
-getData : Signal (Task Http.Error ())
-getData = Signal.map (\str -> Http.getString str `andThen` Signal.send rawData.address)
-    <| Signal.sampleOn ticks (Signal.constant Config.sensorDataUrl)
