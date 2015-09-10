@@ -4,7 +4,7 @@ This application displays incoming data reported by an array of sensors measurin
 
 The data display is written in [Elm](http://elm-lang.org/), a functional reactive programming language for web programming.
 
-View a [demo of the data display](). Note that this demo displays randomly generated data, not live sensor data.
+View a [demo of the data display](http://justinmanley.github.io/waggle-data-display/). Note that this demo displays randomly generated data, not live sensor data.
 
 ### Development
 
